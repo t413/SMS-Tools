@@ -23,6 +23,7 @@ If the CSV formate is the same then you're good to go.
 A tool to make this from iPhone's sms.db is in the works.
 
 ###Getting mmssms.db from your phone
+I've included an empty mmssms.db one can fill with your new data. If you want to add to an existing mmssms.db:
 You're going to need [ADB](http://developer.android.com/tools/help/adb.html) which is in android-sdk/platform-tools/adb and likely already in your path. Just run:
 `adb root; adb remount; adb pull /data/data/com.android.providers.telephony/databases/mmssms.db ./;`
 To get mmssms.db in your current directory.
