@@ -27,22 +27,31 @@ def sms_main():
         if extension == ".csv":
             print "Importing texts from Google Voice CSV file:"
             new_texts = readTextsFromCSV( file )
-        elif extension == ".db":
+        elif extension == ".db" or extension == ".sqlite":
             file.close()
-            if isIOS6db( file.name ):
+            tableNames = getDbTableNames( file.name )
+            if "handle" in tableNames:
                 print "Importing texts from iOS 6 database"
                 new_texts = readTextsFromIOS6( file.name )
-            else:
+            elif "group_member" in tableNames:
                 print "Importing texts from iOS 4/5 database"
                 new_texts = readTextsFromIOS5( file.name )
+            elif "TextMessage" in tableNames:
+                print "Importing texts from Google Voice database"
+                new_texts = readTextsFromGV( file.name )
+            elif "sms" in tableNames:
+                print "is Android"
+            else:
+                print "unrecognized sqlite format"
         elif extension == ".xml":
             print "Importing texts from backup XML file"
             new_texts = readTextsFromXML( file )
         texts += new_texts
         print "finished in {0} seconds, {1} messages read".format( (time.time()-starttime), len(new_texts) )
     
+
     print "sorting all {0} texts by date".format( len(texts) )
-    sorted(texts, key=lambda text: text.date)
+    texts = sorted(texts, key=lambda text: text.date)
     
     if os.path.splitext(args.outfile)[1] == '.db':
         print "Saving changes into Android DB, "+str(args.outfile)
@@ -92,6 +101,25 @@ def readTextsFromIOS6(file):
             print txt
     return texts
     
+def readTextsFromGV(file):
+    conn = sqlite3.connect(file)
+    c = conn.cursor()
+    texts = []
+    query = c.execute(
+        'SELECT TextMessageID, TimeRecordedUTC, Incoming, Text, PhoneNumber \
+        FROM TextMessage \
+        INNER JOIN TextConversation ON TextMessage.TextConversationID = TextConversation.TextConversationID \
+        INNER JOIN Contact ON TextConversation.ContactID = Contact.ContactID \
+        ORDER BY TextMessage.TextMessageID ASC')
+    for row in query:
+        try:
+            ttime = time.mktime(time.strptime(row[1], '%Y-%m-%d %H:%M:%S.%f'))
+        except ValueError:
+            ttime = time.mktime(time.strptime(row[1], '%Y-%m-%d %H:%M:%S'))
+        txt = Text(row[4],long(ttime*1000),(row[2]+1),row[3])
+        texts.append(txt)
+    return texts
+
 def readTextsFromIOS5(file):
     conn = sqlite3.connect(file)
     c = conn.cursor()
@@ -154,12 +182,12 @@ def readTextsFromCSV(file):
         i += 1
     return texts
     
-def isIOS6db(file):
+def getDbTableNames(file):
     cur = sqlite3.connect(file).cursor()
-    cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='handle';")
-    res = cur.fetchone() is not None
+    names = cur.execute("SELECT name FROM sqlite_master WHERE type='table'; ")
+    names = [name[0] for name in names]
     cur.close()
-    return res
+    return names
 
 ## Export functions ##
 
