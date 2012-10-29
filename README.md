@@ -7,7 +7,7 @@ Import data from:
 - iOS 5 databases, iMessages and all
 - iOS 6 databases
 - Android XML from the [SMS Backup & Restore](http://android.riteshsahu.com/apps/sms-backup-restore) app
-- CSV of google voice data, created using [googlevoice-to-sqlite](http://code.google.com/p/googlevoice-to-sqlite/) (see below)
+- CSV / SQLite of google voice data, created using the included fork of googlevoice-to-sqlite (see below)
 
 Save to:
 - XML format for use with [SMS Backup & Restore](http://android.riteshsahu.com/apps/sms-backup-restore) app
@@ -24,6 +24,9 @@ So why use this option?
 - It's orders of magnitude faster. Perfect for load testing mms applications with different databases (what I'm doing, sortof)
 - Much better database performance. After importing the output.xml file with SMSBackupRestore.apk my Messaging.apk was left completely unusable. SMSBackupRestore is great, but it doesn't handle tens of thousands of messages.
 
+#### Google Voice to SQLite / CSV
+I ran into a few issues with the awesome [googlevoice-to-sqlite](http://code.google.com/p/googlevoice-to-sqlite/), so I forked it in this repository. It now supports command line arguments and linux / unix / mac support.
+`usage: googlevoice_to_sqlite.py [-h] [-csv] indir [outdir]`
 
 ##Howto:
 
@@ -38,7 +41,7 @@ positional arguments:
   infiles     input files, may include multiple sources 
                *.csv -> Google Voice csv exported with [googlevoice-to-sqlite](http://code.google.com/p/googlevoice-to-sqlite/)
                *.xml -> [SMS Backup & Restore](http://android.riteshsahu.com/apps/sms-backup-restore)XML format.
-               *.db  -> Autodetected iPhone iOS5 or iOS6 format.
+               *.db  -> Autodetected iPhone iOS5, iOS6, or google voice format.
   outfile     output mmssms.db file use. Must alread exist.
                 *.xml -> [SMS Backup & Restore](http://android.riteshsahu.com/apps/sms-backup-restore)XML format.
                 *.db  -> Android mmssms.db sqlite format
