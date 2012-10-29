@@ -7,21 +7,14 @@ Created on Sep 9, 2011
 @author: Arithmomaniac 
 
 '''
-import time
-import sys
-from os.path import join
-import os.path
-import re
-import atexit
-from xml.etree.ElementTree import fromstring
-import re
-import datetime
+import time, sys, os, datetime, argparse
+import re, atexit
+import xml.etree.ElementTree
 from copy import deepcopy
 from dateutil import tz
 from dateutil.parser import *
 import htmlentitydefs
-import sqlite3
-import csv
+import sqlite3, csv, codecs
 
 
 
@@ -360,15 +353,16 @@ class gvoiceconn(sqlite3.Connection):
                     % (row[1], row[0], row[0])
                 )
                 
-    def exportcsv(self):
+    def exportcsv(self, outdir):
         views = [('contacts.csv', 'Contact')]
         views += ((str.lower(name) + 's.csv', 'flat' + name) for name in ('PhoneCall', 'TextMessage', 'Voicemail', 'Recording'))
         for view in views:
             query = self.execute('SELECT * FROM %s' % view[1])
-            with open('.\\output\\' + view[0], 'wb') as csvfile:  
+            with open(outdir + view[0], 'wb') as csvfile:  
                 csvwriter = csv.writer(csvfile)
                 csvwriter.writerow([i[0] for i in query.description])
-                csvwriter.writerows(query.fetchall())
+                fetch = [[unicode( r ).encode("utf-8") for r in st] for st in query.fetchall()]
+                csvwriter.writerows(fetch)
                 
 
 ####-----------------
@@ -378,8 +372,11 @@ def getobjs(path):
     files = os.listdir(path)
     for fl in files:
         if fl.endswith('.html'): #no mp3 files
-            with open(join(path, fl), 'r') as f: #read the file
-                tree = fromstring(f.read().replace('<br>', "\r\n<br />")) #read properly-formatted html
+            with codecs.open(os.path.join(path, fl), 'r', "latin_1", errors='replace') as f: #read the file
+                try:
+                    tree = xml.etree.ElementTree.fromstring(f.read().replace('<br>', "\r\n<br />").encode("utf-8")) #read properly-formatted html
+                except xml.etree.ElementTree.ParseError:
+                    print "\nproblem parsing " + str(fl)
             record = None #reset the variable
             record = process_file(tree, fl) #do the loading
             if record != None:
@@ -415,14 +412,21 @@ class LineWriter(object):
 
 #main execution routine
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Google Voice to sqlite and csv')
+    parser.add_argument('indir', help='input directory (ends with Voice/Calls/)')
+    parser.add_argument('outdir', nargs='?', default="output/")
+    parser.add_argument('-csv', action="store_true", default=False)
+    #parser.add_argument('-t', action='store_true', dest='test_run', help='Test run, no saving anything')
+    args = parser.parse_args()
+
     #grab location. Allow quoted paths. Default to "brother" conversation directory
-    conversationlocation = re.search("[^\"']+", raw_input('Specify the Calls file location (ends with "\Voice\Calls"): ')).group(0)
+    conversationlocation = args.indir
     if not conversationlocation:
-        conversationlocation = '..\conversations'
-    if not os.path.exists('.\output'):
-        os.mkdir('.\output')
-    gvconn = gvoiceconn('.\output\gvoice.sqlite') #connect to sql database
-    atexit.register(gvconn.commit)  #save it exited early by user
+        conversationlocation = '../conversations'
+    if not os.path.exists( args.outdir ):
+        os.mkdir( args.outdir )
+    gvconn = gvoiceconn( args.outdir + 'gvoice.sqlite' ) #connect to sql database
+    atexit.register( gvconn.commit )  #save it exited early by user
     unmatched_audio = []
     listline = LineWriter()
     try:
@@ -445,9 +449,7 @@ if __name__ == '__main__':
     except:
         gvconn.commit()
         raise    
-    if raw_input('Done creating database.\r\nType anything to export to CSV: ') :
-        gvconn.exportcsv()
+    if args.csv :
+        gvconn.exportcsv( args.outdir )
         print 'CSVs created.'
-    raw_input('Press ENTER to exit: ')
     
-##------------------
