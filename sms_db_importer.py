@@ -6,8 +6,9 @@ def sms_main():
     parser = argparse.ArgumentParser(description='Import texts to android sms database file.')
     parser.add_argument('infiles', nargs='+', type=argparse.FileType('r'), help='input files, may include multiple sources')
     parser.add_argument('outfile', type=str, help='output mmssms.db file use. Must alread exist.')
-    parser.add_argument('-d', action='store_true', dest='sms_debug', help='sms_debug run: extra info, limits to 80, no save.')
-    parser.add_argument('-t', action='store_true', dest='test_run', help='Test run, no saving anything')
+    parser.add_argument('--verbose', '-v', action='store_true', dest='sms_debug', help='sms_debug run: extra info, limits to 80, no save.')
+    parser.add_argument('--test', '-t', action='store_true', dest='test_run', help='Test run, no saving anything')
+    parser.add_argument('--limit', '-l', type=int, default=0, help='limit to the most recent n messages')
     try:
         args = parser.parse_args()#"-iphone ../sms.db mmssms.db".split())
     except IOError:
@@ -53,6 +54,10 @@ def sms_main():
     print "sorting all {0} texts by date".format( len(texts) )
     texts = sorted(texts, key=lambda text: text.date)
     
+    if args.limit > 0:
+        print "saving only the last {0} messages".format( args.limit )
+        texts = texts[ (-args.limit) : ]
+    
     if os.path.splitext(args.outfile)[1] == '.db':
         print "Saving changes into Android DB, "+str(args.outfile)
         exportAndroidSQL(texts, args.outfile)
@@ -63,10 +68,10 @@ def sms_main():
         print "unrecognized output file."
 
 class Text:
-    def __init__( self, num, date, type, body):
+    def __init__( self, num, date, incoming, body):
         self.num  = num
         self.date = date
-        self.type = type
+        self.incoming = incoming
         self.body = body
     def __str__(self):
         return "%s(%r)" % (self.__class__, self.__dict__)
@@ -95,7 +100,7 @@ def readTextsFromIOS6(file):
         if sms_debug and i > 80:
             return
         i+=1
-        txt = Text(row[0],long((row[1] + 978307200)*1000),(row[2]+1),row[3])
+        txt = Text(row[0],long((row[1] + 978307200)*1000),(row[2]==1),row[3])
         texts.append(txt)
         if sms_debug:
             print txt
@@ -116,7 +121,7 @@ def readTextsFromGV(file):
             ttime = time.mktime(time.strptime(row[1], '%Y-%m-%d %H:%M:%S.%f'))
         except ValueError:
             ttime = time.mktime(time.strptime(row[1], '%Y-%m-%d %H:%M:%S'))
-        txt = Text(row[4],long(ttime*1000),(row[2]+1),row[3])
+        txt = Text(row[4],long(ttime*1000),row[2]==0,row[3])
         texts.append(txt)
     return texts
 
@@ -130,10 +135,10 @@ def readTextsFromIOS5(file):
         'SELECT is_madrid, madrid_handle, address, date, text, madrid_date_read, flags FROM message;')
     for row in query:
         if row[0]:
-            txt = Text( row[1], long((row[3] + 978307200)*1000), (row[5]==0)+1, row[4])
+            txt = Text( row[1], long((row[3] + 978307200)*1000), (row[5]==0), row[4])
         else:
             from_me = row[6] & 0x01
-            txt = Text( row[2], long(row[3]*1000), from_me+1, row[4])
+            txt = Text( row[2], long(row[3]*1000), (from_me==1), row[4])
 
         lookup_num = str(txt.num)[-10:]
         if not lookup_num in contactLookup:
@@ -150,7 +155,7 @@ def readTextsFromXML(file):
     i = 0
     for sms in dom.getElementsByTagName("sms"):
         txt = Text( sms.attributes['address'].value, sms.attributes['date'].value,
-                sms.attributes['type'].value, sms.attributes['body'].value)
+                (sms.attributes['type'].value==2), sms.attributes['body'].value)
         texts.append(txt)
     return texts
     
@@ -176,7 +181,7 @@ def readTextsFromCSV(file):
         txt = Text(
                 row[phNumberIndex], #number
                 long(float(dateutil.parser.parse(row[dateIndex]).strftime('%s.%f'))*1000), #date
-                (2 if row[typeIndex]=='0' else 1), #type
+                row[typeIndex]=='0', #type
                 row[bodyIndex] ) #body
         texts.append(txt)
         i += 1
@@ -230,7 +235,7 @@ def exportAndroidSQL(texts, outfile):
             print "thread_id = "+ str(thread_id)
             c.execute( "SELECT * FROM threads WHERE _id=?", [contact_id] )
             print "updated thread: " + str(c.fetchone())
-            print "adding entry to message db: " + str([txt.num,txt.date,txt.body,thread_id,txt.type])
+            print "adding entry to message db: " + str([txt.num,txt.date,txt.body,thread_id,txt.incoming+1])
         
         #add message to sms table
         c.execute( "INSERT INTO sms (address,'date',body,thread_id,read,type,seen) VALUES (?,?,?,?,1,?,1)", [txt.num,txt.date,txt.body,thread_id,txt.type])
@@ -270,7 +275,7 @@ def exportXML(texts, outfile):
         #toa="null" sc_toa="null" service_center="null" read="1" status="-1" locked="0" date_sent="0" readable_date="Sep 27, 2012 10:57:55 AM" contact_name="Kevin Donlon"
         sms.setAttribute("address", str(txt.num))
         sms.setAttribute("date", str(txt.date))
-        sms.setAttribute("type", str(txt.type))
+        sms.setAttribute("type", str(txt.incoming+1))
         sms.setAttribute("body", txt.body)
         #useless things:
         sms.setAttribute("read", "1")
