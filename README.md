@@ -26,30 +26,36 @@ So why use this option?
 
 #### Google Voice to SQLite / CSV
 I ran into a few issues with the awesome [googlevoice-to-sqlite](http://code.google.com/p/googlevoice-to-sqlite/), so I forked it in this repository. It now supports command line arguments and linux / unix / mac support.
-`usage: googlevoice_to_sqlite.py [-h] [-csv] indir [outdir]`
+```
+usage: googlevoice_to_sqlite.py [-h] [--csv CSV] [--encoding ENCODING]
+                                [--force]
+                                indir [outfile]
+```
 
 ##Howto:
 
 Just run `hon sms_db_importer.py  sms-iOS-5.db gv.csv android.xml  out.db`, sit back, and relax.
 
 ```
-usage: sms_db_importer.py [-h] [-d] [-t] infiles [infiles ...] outfile
+usage: sms_db_importer.py [-h] [--verbose] [--test] [--limit LIMIT]
+                          infiles [infiles ...] outfile
 
 Import texts to android sms database file.
 
 positional arguments:
-  infiles     input files, may include multiple sources 
-               *.csv -> Google Voice csv exported with [googlevoice-to-sqlite](http://code.google.com/p/googlevoice-to-sqlite/)
-               *.xml -> [SMS Backup & Restore](http://android.riteshsahu.com/apps/sms-backup-restore)XML format.
-               *.db  -> Autodetected iPhone iOS5, iOS6, or google voice format.
-  outfile     output mmssms.db file use. Must alread exist.
-                *.xml -> [SMS Backup & Restore](http://android.riteshsahu.com/apps/sms-backup-restore)XML format.
-                *.db  -> Android mmssms.db sqlite format
+             *.csv -> Google Voice csv exported with [googlevoice-to-sqlite](http://code.google.com/p/googlevoice-to-sqlite/)
+             *.xml -> [SMS Backup & Restore](http://android.riteshsahu.com/apps/sms-backup-restore)XML format.
+             *.db  -> Autodetected iPhone iOS5, iOS6, or google voice format.
+outfile     output mmssms.db file use. Must alread exist.
+              *.xml -> [SMS Backup & Restore](http://android.riteshsahu.com/apps/sms-backup-restore)XML format.
+              *.db  -> Android mmssms.db sqlite format
 
 optional arguments:
-  -h, --help  show this help message and exit
-  -d          sms_debug run: extra info, limits to 80, no save.
-  -t          Test run, no saving anything
+  -h, --help            show this help message and exit
+  --verbose, -v         sms_debug run: extra info, limits to 80, no save.
+  --test, -t            Test run, no saving anything
+  --limit LIMIT, -l LIMIT
+                        limit to the most recent n messagesusage: sms_db_importer.py [-h] [-d] [-t] infiles [infiles ...] outfile
 ```
 
 ####Using iPhone
