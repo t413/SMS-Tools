@@ -240,7 +240,7 @@ class gvoiceconn(sqlite3.Connection):
         open(path, 'w').close() #wipes file in same path, since old records cannot be relied upon (name changes, etc.)
         sqlite3.Connection.__init__(self, path, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
         #self = sqlite3.connect() #connect
-        with open('initdb.sql', 'r') as initdb:
+        with open('googlevoice_to_sqlite_initdb.sql', 'r') as initdb:
             self.executescript(initdb.read()) #create data structures needed, ad defined in external file\
         #dictonoary to keep track of rowcount in each table
         self.rowcount = dict.fromkeys(('Contact', 'Audio', 'TextConversation', 'TextMessage', 'PhoneCall', 'Voicemail'), 0)
@@ -368,15 +368,21 @@ class gvoiceconn(sqlite3.Connection):
 ####-----------------
 
 # a generator that returns the gvoice_parse object found in a file
-def getobjs(path):
+def getobjs(path, encoding, force):
     files = os.listdir(path)
     for fl in files:
         if fl.endswith('.html'): #no mp3 files
-            with codecs.open(os.path.join(path, fl), 'r', "latin_1", errors='replace') as f: #read the file
-                try:
+            errorHandle = 'strict' if not force else 'replace'
+            try:
+                with codecs.open(os.path.join(path, fl), 'r', encoding, errors=errorHandle) as f: #read the file
                     tree = xml.etree.ElementTree.fromstring(f.read().replace('<br>', "\r\n<br />").encode("utf-8")) #read properly-formatted html
-                except xml.etree.ElementTree.ParseError:
-                    print "\nproblem parsing " + str(fl)
+            except xml.etree.ElementTree.ParseError:
+                print "\nproblem parsing " + str(fl)
+                if not force: quit()
+            except ValueError:
+                print "\nproblem reading file {0} with encoding {1}".format(fl, encoding)
+                print "Try using a different encoding or use --force"
+                if not force: quit()
             record = None #reset the variable
             record = process_file(tree, fl) #do the loading
             if record != None:
@@ -414,23 +420,22 @@ class LineWriter(object):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Google Voice to sqlite and csv')
     parser.add_argument('indir', help='input directory (ends with Voice/Calls/)')
-    parser.add_argument('outdir', nargs='?', default="output/")
-    parser.add_argument('-csv', action="store_true", default=False)
-    #parser.add_argument('-t', action='store_true', dest='test_run', help='Test run, no saving anything')
+    parser.add_argument('outfile', nargs='?', default="gvoice.sqlite")
+    parser.add_argument('--csv', default=False, help="directory to save csvs of messages")
+    parser.add_argument('--encoding', default="latin_1", help="spesify input file encoding")
+    parser.add_argument('--force', action='store_true', help="force skip errors")
     args = parser.parse_args()
 
     #grab location. Allow quoted paths. Default to "brother" conversation directory
     conversationlocation = args.indir
     if not conversationlocation:
         conversationlocation = '../conversations'
-    if not os.path.exists( args.outdir ):
-        os.mkdir( args.outdir )
-    gvconn = gvoiceconn( args.outdir + 'gvoice.sqlite' ) #connect to sql database
+    gvconn = gvoiceconn( args.outfile ) #connect to sql database
     atexit.register( gvconn.commit )  #save it exited early by user
     unmatched_audio = []
     listline = LineWriter()
     try:
-        for i in getobjs(conversationlocation): #load each file into db, depending on type
+        for i in getobjs(conversationlocation, args.encoding, args.force): #load each file into db, depending on type
             listline.write(i[0]) #write filename to console
             record = i[1]
             if isinstance(record, TextConversation): #set of text messages
@@ -450,6 +455,9 @@ if __name__ == '__main__':
         gvconn.commit()
         raise    
     if args.csv :
-        gvconn.exportcsv( args.outdir )
+        path = (args.csv) if args.csv[-1] == os.sep else (args.csv + os.sep)
+        if not os.path.exists( path ):
+            os.mkdir( path )
+        gvconn.exportcsv( path )
         print 'CSVs created.'
     
