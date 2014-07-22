@@ -42,6 +42,7 @@ def sms_main():
                 new_texts = readTextsFromGV( file.name )
             elif "sms" in tableNames:
                 print "is Android"
+                new_texts = readTextsFromAndroid(file. name)
             else:
                 print "unrecognized sqlite format"
         elif extension == ".xml":
@@ -185,6 +186,25 @@ def readTextsFromCSV(file):
                 row[bodyIndex] ) #body
         texts.append(txt)
         i += 1
+    return texts
+
+def readTextsFromAndroid(file):
+    conn = sqlite3.connect(file)
+    c = conn.cursor()
+    i=0
+    texts = []
+    query = c.execute(
+        'SELECT address, date, type, body \
+         FROM sms \
+         ORDER BY _id ASC;')
+    for row in query:
+        if sms_debug and i > 80:
+            return
+        i+=1
+        txt = Text(row[0],long(row[1]),(row[2]==2),row[3])
+        texts.append(txt)
+        if sms_debug:
+            print txt
     return texts
     
 def getDbTableNames(file):
