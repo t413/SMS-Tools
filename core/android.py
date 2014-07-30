@@ -11,7 +11,7 @@ class Android:
 
         db = sqlite3.connect(file)
         cursor = db.cursor()
-        texts = parse_cursor(cursor)
+        texts = self.parse_cursor(cursor)
         cursor.close()
         db.close()
         return texts

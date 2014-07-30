@@ -11,7 +11,6 @@ class IOS6:
 
         conn = sqlite3.connect(file)
         c = conn.cursor()
-        i=0
         texts = []
         query = c.execute(
             'SELECT handle.id, message.date, message.is_from_me, message.text, message.handle_id \
@@ -19,13 +18,8 @@ class IOS6:
              INNER JOIN handle ON message.handle_id = handle.ROWID \
              ORDER BY message.ROWID ASC;')
         for row in query:
-            if sms_debug and i > 80:
-                return
-            i+=1
             txt = Text(row[0],long((row[1] + 978307200)*1000),(row[2]==1),row[3])
             texts.append(txt)
-            if sms_debug:
-                print txt
         return texts
 
     def write(self, texts, outfile):
