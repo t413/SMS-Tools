@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 import argparse, os, sys, time, sqlite3
-import core.android, core.googlevoice, core.tabular
+import core.android, core.googlevoice, core.tabular, core.jsoner
 import core.ios5, core.ios6, core.ios7, core.xmlmms
 
 OUT_TYPE_CHOICES = {
     'android': core.android.Android, 'xml': core.xmlmms.XMLmms,
     'csv': core.tabular.Tabular, 'ios5': core.ios5.IOS5,
     'ios6': core.ios6.IOS6, 'ios7': core.ios7.IOS7,
-    #TODO add json support
+    'json': core.jsoner.JSONer,
 }
 
 

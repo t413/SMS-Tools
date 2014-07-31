@@ -1,4 +1,5 @@
-import sqlite3
+# -*- coding: utf-8 -*-
+import sqlite3, random
 
 class Text:
     def __init__( self, num, date, incoming, body):
@@ -13,6 +14,11 @@ class Text:
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
 
+def getTestTexts():
+    ENCODING_TEST_STRING = u'Δ, Й, ק, ‎ م, ๗, あ, 叶, 葉, and 말.'
+    return [ Text("8675309", 1326497882355L, True, "Yo, what's up boo?"), \
+        Text("+1(555)565-6565", 1330568484000L, False, "Goodbye cruel testing."),\
+        Text("+1(555)565-6565", random.getrandbits(43), False, ENCODING_TEST_STRING)]
 
 
 
