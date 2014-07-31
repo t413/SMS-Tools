@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import argparse, os, sys, time, sqlite3
+import argparse, os, time
 import core.android, core.googlevoice, core.tabular, core.jsoner
 import core.ios5, core.ios6, core.ios7, core.xmlmms
 
@@ -9,42 +9,29 @@ OUT_TYPE_CHOICES = {
     'ios6': core.ios6.IOS6, 'ios7': core.ios7.IOS7,
     'json': core.jsoner.JSONer,
 }
+EXT_TYPE_DEFAULTS = { '.db': 'android', '.json': 'json', '.xml': 'xml', '.csv': 'csv' }
 
 
-def sms_main():
-    parser = argparse.ArgumentParser(description='Import texts to android sms database file.')
-    parser.add_argument('infiles', nargs='+', type=argparse.FileType('r'), help='input files, may include multiple sources')
-    parser.add_argument('outfile', type=argparse.FileType('w'), help='output file to write to.')
-    parser.add_argument('--type', type=str, help='output type', choices=OUT_TYPE_CHOICES.keys())
-    try:
-        args = parser.parse_args()
-    except IOError:
-        print "Problem opening file."
-        quit()
+def sms_main(infiles, outfile, outtype):
 
-    if args.type:
-        outtype = OUT_TYPE_CHOICES[args.type]
+    if outtype:
+        outtype = OUT_TYPE_CHOICES[outtype]
     else:
-        extension = os.path.splitext(args.outfile.name)[1]
-        if extension == '.db':
-            outtype = core.android.Android
-        elif extension == '.xml':
-            outtype = core.xmlmms.XMLmms
-        elif extension == '.csv':
-            outtype = core.tabular.Tabular
+        extension = os.path.splitext(outfile.name)[1]
+        if extension in EXT_TYPE_DEFAULTS:
+            outtype = OUT_TYPE_CHOICES[EXT_TYPE_DEFAULTS[extension]]
         else:
             raise Exception("unknown output format (use --type argument)")
 
     #get the texts into memory
     texts = []
-    for file in args.infiles:
+    for file in infiles:
         texts.extend(readTextsFromFile(file))
 
     print "sorting all {0} texts by date".format( len(texts) )
     texts = sorted(texts, key=lambda text: text.date)
 
-    outtype().write(texts, args.outfile)
-
+    outtype().write(texts, outfile)
 
 
 def readTextsFromFile(file):
@@ -53,7 +40,7 @@ def readTextsFromFile(file):
     if os.path.splitext(file.name)[1] == ".db":
         file.close()
     new_texts = parser.parse(file.name)
-    print "finished in {0} seconds, {1} messages read".format( (time.time()-starttime), len(new_texts) )
+    print "{0} messages read in {1} seconds from {2}".format(len(new_texts), (time.time()-starttime), file.name)
     return new_texts
 
 
@@ -79,4 +66,14 @@ def getParser(file):
 
 
 if __name__ == '__main__':
-    sms_main()
+    parser = argparse.ArgumentParser(description='Import texts to android sms database file.')
+    parser.add_argument('infiles', nargs='+', type=argparse.FileType('r'), help='input files, may include multiple sources')
+    parser.add_argument('outfile', type=argparse.FileType('w'), help='output file to write to.')
+    parser.add_argument('--type', type=str, help='output type', choices=OUT_TYPE_CHOICES.keys())
+    try:
+        args = parser.parse_args()
+    except IOError:
+        print "Problem opening file."
+        quit()
+
+    sms_main(args.infiles, args.outfile, args.type)

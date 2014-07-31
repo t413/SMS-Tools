@@ -1,6 +1,8 @@
-import sys, time, sqlite3
+import os, sys, time, sqlite3
 from core import Text
 
+ROOTDIR = os.path.dirname(os.path.dirname(__file__))
+DB_SQL_FILE = os.path.join(ROOTDIR, 'initdb', 'init_android_db.sql')
 
 class Android:
     """ Android sqlite reader and writer """
@@ -29,8 +31,19 @@ class Android:
 
     def write(self, texts, outfile):
         """ write a Text[] to sqlite file """
-        #open resources
-        conn = sqlite3.connect(outfile)
+        if type(outfile) == file:
+            if not file.closed:
+                file.close()
+            outfile = os.path.abspath(outfile.name)
+        if (not os.path.isfile(outfile)) or (os.path.getsize(outfile) < 1):
+            print "Creating empty Android SQLITE db"
+            conn = sqlite3.connect(outfile)
+            with open(DB_SQL_FILE,'r') as f:
+                setupSQL = f.read()
+            conn.executescript(setupSQL)
+        else:
+            conn = sqlite3.connect(outfile)
+
         cursor = conn.cursor()
 
         self.write_cursor(texts, cursor)
@@ -107,21 +120,7 @@ class Android:
 
 
 
-if __name__ == '__main__':
-    import sys, os
-    # DBFILE = os.path.join(os.path.dirname(__file__), "../tests/test_files/ethans-working-mmssms.db")
-    # parsed = AndroidDB().parse(DBFILE)
-    # print parsed[0]
 
-    ROOTDIR = os.path.dirname(os.path.dirname(__file__))
-    DB_SQL_FILE = os.path.join(ROOTDIR, 'initdb', 'android_db.sql')
-
-    db = sqlite3.connect(':memory:')
-    with open(DB_SQL_FILE,'r') as f:
-        setupSQL = f.read()
-    db.executescript(setupSQL)
-
-    print parsed_texts
 
 
 
