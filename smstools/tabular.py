@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import unicodecsv
-from core import Text
+import core
 
 
 class Tabular:
@@ -27,7 +27,7 @@ class Tabular:
         texts = []
         i=0
         for row in inreader:
-            txt = Text(
+            txt = core.Text(
                     row[phNumberIndex], #number
                     long(float(dateutil.parser.parse(row[dateIndex]).strftime('%s.%f'))*1000), #date
                     row[typeIndex]=='0', #type
@@ -48,9 +48,9 @@ class Tabular:
 if __name__ == '__main__':
     import os, random, StringIO
     ENCODING_TEST_STRING = u'Δ, Й, ק, ‎ م, ๗, あ, 叶, 葉, and 말.'
-    true_texts = [ Text("8675309", 1326497882355L, True, 'Yo, what\'s up boo? you so "cray"'), \
-        Text("+1(555)565-6565", 1330568484000L, False, "Goodbye cruel testing."),\
-        Text("+1(555)565-6565", random.getrandbits(43), False, ENCODING_TEST_STRING)]
+    true_texts = [ core.Text("8675309", 1326497882355L, True, 'Yo, what\'s up boo? you so "cray"'), \
+        core.Text("+1(555)565-6565", 1330568484000L, False, "Goodbye cruel testing."),\
+        core.Text("+1(555)565-6565", random.getrandbits(43), False, ENCODING_TEST_STRING)]
     # file = open(os.path.join(os.path.dirname(__file__),'test.csv'), 'w')
     file = StringIO.StringIO()
     Tabular().write(true_texts, file)

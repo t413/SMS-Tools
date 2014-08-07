@@ -1,5 +1,24 @@
 # -*- coding: utf-8 -*-
-import sqlite3, random
+import sqlite3, random, os, sys, time
+import core, android, xmlmms, tabular, ios5, ios6, ios7, jsoner, googlevoice
+
+
+OUTPUT_TYPE_CHOICES = {
+    'android': android.Android,
+    'xml': xmlmms.XMLmms,
+    'csv': tabular.Tabular,
+    'ios5': ios5.IOS5,
+    'ios6': ios6.IOS6,
+    'ios7': ios7.IOS7,
+    'json': jsoner.JSONer,
+}
+
+EXTENTION_TYPE_DEFAULTS = {
+    '.db': 'android',
+    '.json': 'json',
+    '.xml': 'xml',
+    '.csv': 'csv',
+}
 
 class Text:
     def __init__( self, num, date, incoming, body):
@@ -13,6 +32,37 @@ class Text:
         return self.__str__()
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
+
+def readTextsFromFile(file):
+    starttime = time.time() #meause execution time
+    parser = getParser(file)
+    if os.path.splitext(file.name)[1] == ".db":
+        file.close()
+    new_texts = parser.parse(file.name)
+    print "{0} messages read in {1} seconds from {2}".format(len(new_texts), (time.time()-starttime), file.name)
+    return new_texts
+
+
+def getParser(file):
+    extension = os.path.splitext(file.name)[1]
+    if extension == ".csv":
+        return csv.CSV()
+    elif extension == ".db" or extension == ".sqlite":
+        file.close()
+        tableNames = core.getDbTableNames( file.name )
+        if "handle" in tableNames:
+            return ios6.IOS6()
+        elif "group_member" in tableNames:
+            return ios5.IOS5()
+        elif "TextMessage" in tableNames:
+            return googlevoice.GoogleVoice()
+        elif "sms" in tableNames:
+            return android.Android()
+        else:
+            raise Exception("unrecognized sqlite format")
+    elif extension == ".xml":
+        return xmlmms.XMLmms()
+
 
 def getTestTexts():
     ENCODING_TEST_STRING = u'Δ, Й, ק, ‎ م, ๗, あ, 叶, 葉, and 말.'

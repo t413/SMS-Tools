@@ -4,7 +4,7 @@ This file houses the main execution routine
 
 Created on Sep 9, 2011
 
-@author: Arithmomaniac 
+@author: Arithmomaniac
 
 '''
 import time, sys, os, datetime, argparse
@@ -15,6 +15,7 @@ from dateutil import tz
 from dateutil.parser import *
 import htmlentitydefs
 import sqlite3, csv, codecs
+import core
 
 
 
@@ -29,8 +30,8 @@ class Contact:
     def dump(self): #debug info
         return "%s (%s)" % (self.name, self.phonenumber)
     def test(self): #if has values
-        return self.phonenumber != None or self.name != None  
-    
+        return self.phonenumber != None or self.name != None
+
 #Text message
 class Text:
     __slots__ = ['contact', 'date', 'text']
@@ -106,8 +107,8 @@ def unescape(text):
 def parse_date (datestring):
     returntime = parse(datestring).astimezone(tz.tzutc())
     return returntime.replace(tzinfo = None)
-    
-    
+
+
 #Parses the "duration" tag into the number of seconds it encodes
 def parse_time (timestring):
     #what does real pattern really mean
@@ -138,12 +139,12 @@ def get_label(node):
 #Finds the first contact contained within a node. Returns it
 def find_Contact(node):
     contact_obj = Contact()
-    
+
     #two places the node could be
     contactnode = node.find(as_xhtml('.//cite[@class="sender vcard"]/a[@class="tel"]'))
     if contactnode is None:
         contactnode = node.find(as_xhtml('.//div[@class="contributor vcard"]/a[@class="tel"]'))
-    
+
     #name
     contact_obj.name = contactnode.findtext(as_xhtml('./span[@class="fn"]'))
     if contact_obj.name != None and len(contact_obj.name) == 0: #If a blank string. Should be an isinstance
@@ -152,14 +153,14 @@ def find_Contact(node):
     contactphonenumber = re.search('\d+', contactnode.attrib['href'])
     if contactphonenumber != None:
         contact_obj.phonenumber = contactphonenumber.group(0)
-        
+
     return contact_obj
 
 def process_TextConversation(textnodes, onewayname): #a list of texts, and the title used in special cases
     text_collection = TextConversation()
     text_collection.texts = []
     for i in textnodes:
-        textmsg = Text()
+        textmsg = core.Text()
         textmsg.contact = find_Contact(i)
         if text_collection.contact.test() == False: #if we don't have a contact for this conversation yet
                 if textmsg.contact.name != None:    #if contact not self
@@ -210,7 +211,7 @@ def process_Audio(audionode):
             totalconfid += float(i.findtext('.'))
         audio_obj.confidence = totalconfid / len(confidence_values)
     #location of audio file
-    audio_obj.filename = audionode.find(as_xhtml('./audio')).attrib["src"]    
+    audio_obj.filename = audionode.find(as_xhtml('./audio')).attrib["src"]
     #label
     audio_obj.audiotype = get_label(audionode)
     return audio_obj
@@ -245,13 +246,13 @@ class gvoiceconn(sqlite3.Connection):
         #dictonoary to keep track of rowcount in each table
         self.rowcount = dict.fromkeys(('Contact', 'Audio', 'TextConversation', 'TextMessage', 'PhoneCall', 'Voicemail'), 0)
         self.unmatched_recordings = [] #recordings not matched to audio file
-    
+
     #Returns the maximum primary key from a table
-    #TO DO: handle locally as a dictionary instead        
+    #TO DO: handle locally as a dictionary instead
     def getmaxid(self, tablename):
         self.rowcount[tablename] += 1
         return self.rowcount[tablename]
-        
+
     #imports a Contact object into the database
     def import_Contact(self, contact):
         if contact.name != None:
@@ -259,15 +260,15 @@ class gvoiceconn(sqlite3.Connection):
         #sees if contact id for contact already exists
         contactid = self.execute('SELECT ContactID FROM Contact \
             WHERE (Name = ? OR COALESCE(Name,?) is NULL) \
-            AND  (PhoneNumber = ? OR COALESCE(PhoneNumber,?) is NULL)', 
+            AND  (PhoneNumber = ? OR COALESCE(PhoneNumber,?) is NULL)',
             (contact.name, contact.name, contact.phonenumber, contact.phonenumber)).fetchone()
         if contactid != None: #if contact exists, that's all we need
             return contactid[0]
         else: #Contact ID will be new row we create
-            contactid = self.getmaxid('Contact') 
+            contactid = self.getmaxid('Contact')
             self.execute('INSERT INTO Contact (ContactID, Name, PhoneNumber) VALUES (?, ?, ?)', (contactid, contact.name, contact.phonenumber))
             return contactid
-    
+
     #Import text messages in a TextConversation into the database
     def import_TextConversation(self, text_conversation):
         contactid = self.import_Contact(text_conversation.contact) #get contact of conversation
@@ -282,7 +283,7 @@ class gvoiceconn(sqlite3.Connection):
                           0 if textmsg.contact.name == None else 1, #if None, means self
                           textmsg.text
                           ))
-     
+
     #Import a Call object into the database
     def import_Call(self, callrecord):
         try:
@@ -300,7 +301,7 @@ class gvoiceconn(sqlite3.Connection):
                 pass
             else:
                 raise
-    
+
     #imports Audio object into database
     def import_Audio(self, audiorecord, insert_unmatched_audio = True):
         contactid = self.import_Contact(audiorecord.contact)
@@ -312,8 +313,8 @@ class gvoiceconn(sqlite3.Connection):
             self.execute('INSERT INTO Voicemail (VoicemailID, ContactID) VALUES (?, ?)', (voicemailid, contactid))
         else: #Guess what Call the recording is associated with. If exists, insert
             callidrow = self.execute(
-                'select PhoneCallID from PhoneCall WHERE ContactID = ? and strftime("%s", ?) - strftime("%s", TimeStartedUTC) between 0 and Duration', 
-                (contactid, audiorecord.date)                
+                'select PhoneCallID from PhoneCall WHERE ContactID = ? and strftime("%s", ?) - strftime("%s", TimeStartedUTC) between 0 and Duration',
+                (contactid, audiorecord.date)
                 )
             if callidrow == None:
                 self.unmatched_recordings += audiorecord
@@ -334,7 +335,7 @@ class gvoiceconn(sqlite3.Connection):
              audiorecord.filename
             ))
         return 0
-            
+
     #Outgoing-only text conversations only display the name, but not the number. This tries to locate the right number
     #For a name from different correspondence
     #TO DO: Work on my-text basis instead of by-contact basis for better precision
@@ -342,28 +343,28 @@ class gvoiceconn(sqlite3.Connection):
         #Get a list of null-phone-number contacts and the contacts with real phone numbers they match
         execstring = '''SELECT NullContacts.ContactID, CompleteContacts.ContactID FROM (
         SELECT DISTINCT Contact.ContactId, Name, PhoneNumber
-        FROM Contact INNER JOIN %s ON Contact.ContactId = %s.ContactId WHERE PhoneNumber IS NOT NULL) AS CompleteContacts 
-        INNER JOIN ( SELECT ContactId, Name FROM Contact WHERE PhoneNumber IS NULL ) AS NullContacts 
+        FROM Contact INNER JOIN %s ON Contact.ContactId = %s.ContactId WHERE PhoneNumber IS NOT NULL) AS CompleteContacts
+        INNER JOIN ( SELECT ContactId, Name FROM Contact WHERE PhoneNumber IS NULL ) AS NullContacts
         ON NullContacts.Name = CompleteContacts.Name'''
         #Update text conversation with good contact, then throw away dud number
-        for table in ('TextConversation', 'PhoneCall'): #First match to texts, then if no incoming texts, try calls            
+        for table in ('TextConversation', 'PhoneCall'): #First match to texts, then if no incoming texts, try calls
             for row in self.execute(execstring % (table, table)):
                 self.executescript(
                     'UPDATE TextConversation SET ContactId = %d WHERE ContactId = %d; DELETE FROM Contact WHERE ContactId = %d;' \
                     % (row[1], row[0], row[0])
                 )
-                
+
     def exportcsv(self, outdir):
         views = [('contacts.csv', 'Contact')]
         views += ((str.lower(name) + 's.csv', 'flat' + name) for name in ('PhoneCall', 'TextMessage', 'Voicemail', 'Recording'))
         for view in views:
             query = self.execute('SELECT * FROM %s' % view[1])
-            with open(outdir + view[0], 'wb') as csvfile:  
+            with open(outdir + view[0], 'wb') as csvfile:
                 csvwriter = csv.writer(csvfile)
                 csvwriter.writerow([i[0] for i in query.description])
                 fetch = [[unicode( r ).encode("utf-8") for r in st] for st in query.fetchall()]
                 csvwriter.writerows(fetch)
-                
+
 
 ####-----------------
 
@@ -395,7 +396,7 @@ class LineWriter(object):
         self.flush = flush
         self.lastlen = None #the length of the last line
         self.outfile = outfile
-        
+
     def __del__(self):
         self.newline() #make sure that on new line when done
 
@@ -406,12 +407,12 @@ class LineWriter(object):
         self.outfile.write('\r%s' % command) #go back to beginning of line and write
         self.lastlen = currlen #then save new value of lastlen
         if self.flush:
-            self.outfile.flush()    
+            self.outfile.flush()
 
     def wipe(self):
         self.write(''.rjust(self.lastlen)) #overwrite with blank values
         self.lastlen = None #no content on line anymore
-        
+
     def newline(self):
         self.lastlen = None #new line, so no need to care about overwriting
         self.write('\r\n') #write the line
@@ -453,11 +454,11 @@ if __name__ == '__main__':
         gvconn.commit()
     except:
         gvconn.commit()
-        raise    
+        raise
     if args.csv :
         path = (args.csv) if args.csv[-1] == os.sep else (args.csv + os.sep)
         if not os.path.exists( path ):
             os.mkdir( path )
         gvconn.exportcsv( path )
         print 'CSVs created.'
-    
+

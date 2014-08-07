@@ -1,5 +1,5 @@
 import json
-from core import Text
+import core
 
 
 class JSONer:
@@ -11,7 +11,7 @@ class JSONer:
     def fromJson(self, string):
         def asTexts(dct):
             if ('body' in dct) and ('date' in dct) and ('num' in dct):
-                return Text(**dct)
+                return core.Text(**dct)
             return dct
         return json.loads(string, object_hook=asTexts)
 

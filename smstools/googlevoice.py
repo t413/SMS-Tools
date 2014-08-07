@@ -1,5 +1,5 @@
 import time, sqlite3, csv
-from core import Text
+import core
 
 
 class GoogleVoice:
@@ -26,7 +26,7 @@ class GoogleVoice:
                 ttime = time.mktime(time.strptime(row[1], '%Y-%m-%d %H:%M:%S.%f'))
             except ValueError:
                 ttime = time.mktime(time.strptime(row[1], '%Y-%m-%d %H:%M:%S'))
-            txt = Text(row[4],long(ttime*1000),row[2]==0,row[3])
+            txt = core.Text(row[4],long(ttime*1000),row[2]==0,row[3])
             texts.append(txt)
         return texts
 

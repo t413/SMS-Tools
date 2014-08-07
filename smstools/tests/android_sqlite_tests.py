@@ -1,30 +1,23 @@
 # -*- coding: utf-8 -*-
 import unittest, sys, os, sqlite3
-if (os.path.basename(sys.path[0]) == "tests"):
-    sys.path.append(os.path.dirname(sys.path[0]))
-import core.android
-from core.core import Text
-
-ROOTDIR = os.path.dirname(os.path.dirname(__file__))
-DB_SQL_FILE = os.path.join(ROOTDIR, 'initdb', 'init_android_db.sql')
-TEST_DB_FILE = os.path.join(ROOTDIR, 'tests', 'test_android.db')
+##include smstools/ directory
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
+import core, android
 
 class AndroidTest(unittest.TestCase):
 
     def setUp(self):
 
         self.db = sqlite3.connect(':memory:')
-        with open(DB_SQL_FILE,'r') as f:
-            setupSQL = f.read()
-        self.db.executescript(setupSQL)
+        self.db.executescript(android.INIT_DB_SQL)
 
 
     def test_write_parse(self):
-        true_texts = core.core.getTestTexts()
+        true_texts = core.getTestTexts()
         cursor = self.db.cursor()
 
-        core.android.Android().write_cursor(true_texts, cursor)
-        parsed_texts = core.android.Android().parse_cursor(cursor)
+        android.Android().write_cursor(true_texts, cursor)
+        parsed_texts = android.Android().parse_cursor(cursor)
 
         for i in range(len(true_texts)):
             self.assertEqual(true_texts[i], parsed_texts[i])

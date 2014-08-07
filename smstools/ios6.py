@@ -1,5 +1,5 @@
 import sqlite3
-from core import Text
+import core
 
 
 class IOS6:
@@ -18,7 +18,7 @@ class IOS6:
              INNER JOIN handle ON message.handle_id = handle.ROWID \
              ORDER BY message.ROWID ASC;')
         for row in query:
-            txt = Text(row[0],long((row[1] + 978307200)*1000),(row[2]==1),row[3])
+            txt = core.Text(row[0],long((row[1] + 978307200)*1000),(row[2]==1),row[3])
             texts.append(txt)
         return texts
 

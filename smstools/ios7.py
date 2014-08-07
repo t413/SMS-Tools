@@ -1,5 +1,4 @@
 import sqlite3
-from core import Text
 
 
 class IOS7:

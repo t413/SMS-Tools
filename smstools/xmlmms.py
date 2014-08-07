@@ -1,6 +1,5 @@
 import xml.dom.minidom
-from core import Text
-
+import core
 
 class XMLmms:
     """ Android XML reader and writer """
@@ -12,7 +11,7 @@ class XMLmms:
         dom = xml.dom.minidom.parse(file)
         i = 0
         for sms in dom.getElementsByTagName("sms"):
-            txt = Text( sms.attributes['address'].value, sms.attributes['date'].value,
+            txt = core.Text( sms.attributes['address'].value, sms.attributes['date'].value,
                     (sms.attributes['type'].value==2), sms.attributes['body'].value)
             texts.append(txt)
         return texts

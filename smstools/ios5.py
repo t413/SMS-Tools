@@ -1,5 +1,5 @@
 import sqlite3
-from core import Text
+import core
 
 
 class IOS5:
@@ -18,10 +18,10 @@ class IOS5:
             'SELECT is_madrid, madrid_handle, address, date, text, madrid_date_read, flags FROM message;')
         for row in query:
             if row[0]:
-                txt = Text( row[1], long((row[3] + 978307200)*1000), (row[5]==0), row[4])
+                txt = core.Text( row[1], long((row[3] + 978307200)*1000), (row[5]==0), row[4])
             else:
                 from_me = row[6] & 0x01
-                txt = Text( row[2], long(row[3]*1000), (from_me==1), row[4])
+                txt = core.Text( row[2], long(row[3]*1000), (from_me==1), row[4])
 
             lookup_num = str(txt.num)[-10:]
             if not lookup_num in contactLookup:
