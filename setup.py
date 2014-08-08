@@ -7,7 +7,7 @@ def read(fname):
 
 setup(
     name='smstools',
-    version='0.0.9',
+    version='0.0.10',
     description='Universal SMS conversion tool',
     long_description=read('README.rst'),
     author='Tim O\'Brien',
