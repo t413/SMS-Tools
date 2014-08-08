@@ -3,6 +3,9 @@ SMS Tools
 
 Multipurpose import / export / merge tool for your text message history. (formally Android-SMS-DB-importer)
 
+Now on [PyPi](https://pypi.python.org/pypi/SMSTools) (the python package index) and available using pip!
+`pip install smstools` puts `smstools` in your path, you're ready to roll.
+
 Convert your message history between:
 - iOS 5, 6, and 7 databases directly (from backup or from your jailbroken phone directly)
 - Android mmssms.db database (directly from phone)
@@ -23,13 +26,13 @@ Get all of your old messages onto your android phone.
 
 ##Howto:
 
-Just run `python sms_tools.py <in> <out>`, sit back, and relax.
+Now on [PyPi](https://pypi.python.org/pypi/SMSTools) (the python package index) and available using pip!
+`pip install smstools` puts `smstools` in your path, you're ready to roll.
 
 ```
-usage: sms_tools.py [-h] [--type {xml,json,android,csv,ios5,ios7,ios6}]
+usage: smstools [-h] [--type {xml,json,android,csv,ios5,ios7,ios6}]
                     infiles [infiles ...] outfile
 ```
-Import texts to android sms database file.
 
 
 ##Where do I get my files from?

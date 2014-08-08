@@ -2,14 +2,19 @@
 # -*- mode: python -*-
 # PYTHON_ARGCOMPLETE_OK
 
-import argparse, argcomplete, os, time
+import argparse, os, time
 import smstools.core as core
 
 parser = argparse.ArgumentParser(description='Import texts to android sms database file.')
 parser.add_argument('infiles', nargs='+', type=argparse.FileType('r'), help='input files, may include multiple sources')
 parser.add_argument('outfile', type=argparse.FileType('w'), help='output file to write to.')
 parser.add_argument('--type', type=str, help='output type', choices=core.OUTPUT_TYPE_CHOICES.keys())
-argcomplete.autocomplete(parser)
+
+try:
+    import argcomplete
+    argcomplete.autocomplete(parser)
+except:
+    pass
 
 try:
     args = parser.parse_args()
