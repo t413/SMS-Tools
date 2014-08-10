@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import sqlite3, random, os, sys, time
 import core, android, xmlmms, tabular, ios5, ios6, ios7, jsoner, googlevoice
-
+from sms_exceptions import *
 
 OUTPUT_TYPE_CHOICES = {
     'android': android.Android,
@@ -58,10 +58,9 @@ def getParser(file):
             return googlevoice.GoogleVoice()
         elif "sms" in tableNames:
             return android.Android()
-        else:
-            raise Exception("unrecognized sqlite format")
     elif extension == ".xml":
         return xmlmms.XMLmms()
+    raise UnrecognizedDBError()
 
 
 def getTestTexts():
