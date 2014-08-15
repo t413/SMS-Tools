@@ -49,7 +49,10 @@ def getParser(file):
         return csv.CSV()
     elif extension == ".db" or extension == ".sqlite":
         file.close()
-        tableNames = core.getDbTableNames( file.name )
+        try:
+            tableNames = core.getDbTableNames( file.name )
+        except:
+            raise UnrecognizedDBError("Error reading from %s" % file.name)
         if "handle" in tableNames:
             return ios6.IOS6()
         elif "group_member" in tableNames:
@@ -58,9 +61,11 @@ def getParser(file):
             return googlevoice.GoogleVoice()
         elif "sms" in tableNames:
             return android.Android()
+        info = getDbInfo( file.name )
+        raise UnrecognizedDBError("Unknown sqlite database: [%s]\n%s" % (os.path.basename(file.name), info))
     elif extension == ".xml":
         return xmlmms.XMLmms()
-    raise UnrecognizedDBError()
+    raise UnrecognizedDBError("Unknown extension %s" % extension)
 
 
 def getTestTexts():
@@ -70,10 +75,26 @@ def getTestTexts():
         Text("+1(555)565-6565", random.getrandbits(43), False, ENCODING_TEST_STRING)]
 
 
-
 def getDbTableNames(file):
     cur = sqlite3.connect(file).cursor()
-    names = cur.execute("SELECT name FROM sqlite_master WHERE type='table'; ")
-    names = [name[0] for name in names]
+    names = [name[0] for name in cur.execute("SELECT name FROM sqlite_master WHERE type='table'; ")]
     cur.close()
     return names
+
+def getDbInfo(file):
+    outs = ""
+    try:
+        cur = sqlite3.connect(file).cursor()
+        names = [name[0] for name in cur.execute("SELECT name FROM sqlite_master WHERE type='table'; ")]
+    except:
+        outs += "file %s not sqlite\n" % file
+        return
+    tab_count = [(table, cur.execute("SELECT Count() FROM %s" % table).fetchone()[0]) for table in names]
+
+    if len(names): outs += " tables in %s:\n" % os.path.basename(file)
+    for table in sorted(tab_count, key=lambda tup: -tup[1]):
+        colnames = [x[1] for x in cur.execute("PRAGMA table_info(%s)" % table[0]).fetchall()]
+        outs += " - %s (%i items): (%s)\n" % (table[0], table[1], colnames)
+    cur.close()
+    return outs
+

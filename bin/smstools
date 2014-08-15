@@ -2,13 +2,14 @@
 # -*- mode: python -*-
 # PYTHON_ARGCOMPLETE_OK
 
-import argparse, os, time
+import argparse, os, time, sys
 import smstools
 
 parser = argparse.ArgumentParser(description='Import texts to android sms database file.')
 parser.add_argument('infiles', nargs='+', type=argparse.FileType('r'), help='input files, may include multiple sources')
 parser.add_argument('outfile', type=argparse.FileType('w'), help='output file to write to.')
 parser.add_argument('--type', type=str, help='output type', choices=smstools.OUTPUT_TYPE_CHOICES.keys())
+parser.add_argument('-V', '--version', action='version', version="%(prog)s "+smstools.__version__)
 
 try:
     import argcomplete
@@ -16,29 +17,30 @@ try:
 except:
     pass
 
+args = parser.parse_args()
+
 try:
-    args = parser.parse_args()
-except IOError:
-    print "Problem opening file."
-    quit()
-
-outtype = args.type
-if outtype:
-    outtype = smstools.OUTPUT_TYPE_CHOICES[outtype]
-else:
-    extension = os.path.splitext(args.outfile.name)[1]
-    if extension in smstools.EXTENTION_TYPE_DEFAULTS:
-        outtype = smstools.OUTPUT_TYPE_CHOICES[smstools.EXTENTION_TYPE_DEFAULTS[extension]]
+    outtype = args.type
+    if outtype:
+        outtype = smstools.OUTPUT_TYPE_CHOICES[outtype]
     else:
-        raise Exception("unknown output format (use --type argument)")
+        extension = os.path.splitext(args.outfile.name)[1]
+        if extension in smstools.EXTENTION_TYPE_DEFAULTS:
+            outtype = smstools.OUTPUT_TYPE_CHOICES[smstools.EXTENTION_TYPE_DEFAULTS[extension]]
+        else:
+            raise smstools.SMSToolError("unknown output format (use --type argument)")
 
-#get the texts into memory
-texts = []
-for file in args.infiles:
-    texts.extend(smstools.readTextsFromFile(file))
+    #get the texts into memory
+    texts = []
+    for file in args.infiles:
+        texts.extend(smstools.readTextsFromFile(file))
 
-print "sorting all {0} texts by date".format( len(texts) )
-texts = sorted(texts, key=lambda text: text.date)
+    print "sorting all {0} texts by date".format( len(texts) )
+    texts = sorted(texts, key=lambda text: text.date)
 
-outtype().write(texts, args.outfile)
-
+    outtype().write(texts, args.outfile)
+except smstools.SMSToolError as e:
+    sys.exit(e) #exit with error without traceback
+except KeyboardInterrupt:
+    sys.exit("\n .. death.. so soon?")
+# other exceptions have full traceback

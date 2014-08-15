@@ -1,13 +1,16 @@
-import os
+import os, json
 from distutils.core import setup
 
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+v = json.loads(read("VERSION"))
+__version__ = "%i.%i.%i" % (v['version_major'],v['version_minor'],v['version_patch'])
+
 setup(
     name='smstools',
-    version='0.1.0',
+    version=__version__,
     description='Universal SMS conversion tool',
     long_description=read('README.rst'),
     author='Tim O\'Brien',
