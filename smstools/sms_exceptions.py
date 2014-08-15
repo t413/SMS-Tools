@@ -6,3 +6,7 @@ class SMSToolError(OSError):
 class UnrecognizedDBError(SMSToolError):
     '''Unrecognized sqlite format'''
     pass
+
+class UnfinishedError(SMSToolError):
+    '''Not yet implimented'''
+    pass

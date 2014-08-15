@@ -1,5 +1,5 @@
 import sqlite3
-import core
+import core, sms_exceptions
 
 
 class IOS6:
@@ -23,5 +23,5 @@ class IOS6:
         return texts
 
     def write(self, texts, outfile):
-        raise Exception("not implemented!")
+        raise sms_exceptions.UnfinishedError("iOS output not yet implemented :/ (email me to help test!)!")
         #TODO !!!

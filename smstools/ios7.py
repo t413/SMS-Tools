@@ -1,4 +1,5 @@
 import sqlite3
+import core, sms_exceptions
 
 
 class IOS7:
@@ -6,8 +7,8 @@ class IOS7:
 
 
     def parse(self, file):
-        raise Exception("not implemented!")
+        raise sms_exceptions.UnfinishedError("iOS 7 input not yet finished :/ sorry")
         #TODO !!!
     def write(self, texts, outfile):
-        raise Exception("not implemented!")
+        raise sms_exceptions.UnfinishedError("iOS output not yet implemented :/ (email me to help test!)")
         #TODO !!!

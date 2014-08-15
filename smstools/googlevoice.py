@@ -1,7 +1,6 @@
 import time, sqlite3, csv
 import core
 
-
 class GoogleVoice:
     """ Google Voice (in sqlite or format) reader and writer """
 
@@ -31,5 +30,5 @@ class GoogleVoice:
         return texts
 
     def write(self, texts, outfile):
-        raise Exception("not implemented!")
-        #TODO!!
+        raise Exception("Can't output to Google Voice, sorry.")
+
