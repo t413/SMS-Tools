@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import sqlite3, random, os, sys, time
-import core, android, xmlmms, tabular, ios5, ios6, ios7, jsoner, googlevoice
+import core, android, xmlmms, tabular, ios5, ios6, jsoner, googlevoice
 from sms_exceptions import *
 
 OUTPUT_TYPE_CHOICES = {
@@ -9,7 +9,6 @@ OUTPUT_TYPE_CHOICES = {
     'csv': tabular.Tabular,
     'ios5': ios5.IOS5,
     'ios6': ios6.IOS6,
-    'ios7': ios7.IOS7,
     'json': jsoner.JSONer,
 }
 

@@ -28,6 +28,9 @@ class IOS5:
             else:
                 from_me = row[6] & 0x01
                 txt = core.Text( row[2], long(row[3]*1000), (from_me==1), row[4])
+            if not txt.num:
+                txt.num = "unknown"
+                print "WARNING: extracted text without number. row: %s" % str(row)
 
             lookup_num = str(txt.num)[-10:]
             if not lookup_num in contactLookup:
@@ -35,6 +38,7 @@ class IOS5:
             txt.cid = contactLookup[lookup_num]
             texts.append(txt)
             i+=1
+        return texts
 
 
     def write(self, texts, outfile):

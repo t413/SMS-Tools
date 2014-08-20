@@ -1,4 +1,4 @@
-import sqlite3, uuid
+import sqlite3, uuid, os
 import core, sms_exceptions
 
 
@@ -73,7 +73,8 @@ class IOS6:
                     cursor.execute( "INSERT INTO handle ('id', service, uncanonicalized_id ) \
                         VALUES (?,?,?)", [txt.num,"SMS",clean_number])
                 except:
-                    raise Exception("more data: %s" %(txt))
+                    print "failed at: %s" % (txt)
+                    raise
                 handles_lookup[clean_number] = cursor.lastrowid
 
             ## Create the chat table (effectively a threads table)
