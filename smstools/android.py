@@ -32,12 +32,14 @@ class Android:
             if not file.closed:
                 file.close()
             outfile = os.path.abspath(outfile.name)
-        if (not os.path.isfile(outfile)) or (os.path.getsize(outfile) < 1):
+
+        if (os.path.isfile(outfile) and (os.path.getsize(outfile) > 0)):
+            print "connecting to existing db"
+            conn = sqlite3.connect(outfile)
+        else:
             print "Creating empty Android SQLITE db"
             conn = sqlite3.connect(outfile)
             conn.executescript(INIT_DB_SQL)
-        else:
-            conn = sqlite3.connect(outfile)
 
         cursor = conn.cursor()
 
@@ -55,7 +57,7 @@ class Android:
         contactIdFromNumber = {}
         query = cursor.execute('SELECT _id,address FROM canonical_addresses;')
         for row in query:
-            contactIdFromNumber[self.cleanNumber(row[1])] = row[0]
+            contactIdFromNumber[core.cleanNumber(row[1])] = row[0]
 
         #start the main loop through each message
         i=0
@@ -65,7 +67,7 @@ class Android:
 
         for txt in texts:
 
-            clean_number = self.cleanNumber(txt.num)
+            clean_number = core.cleanNumber(txt.num)
 
             #add a new canonical_addresses lookup entry and thread item if it doesn't exist
             if not clean_number in contactIdFromNumber:
@@ -74,17 +76,19 @@ class Android:
                 cursor.execute( "INSERT INTO threads (recipient_ids) VALUES (?)", [contactIdFromNumber[clean_number]])
             contact_id = contactIdFromNumber[clean_number]
 
+            ## TODO Only run this query at the END of the loop!
             #now update the conversation thread (happends with each new message)
             cursor.execute( "UPDATE threads SET message_count=message_count + 1,snippet=?,'date'=? WHERE recipient_ids=? ", [txt.body,txt.date,contact_id] )
             cursor.execute( "SELECT _id FROM threads WHERE recipient_ids=? ", [contact_id] )
             thread_id = cursor.fetchone()[0]
 
-            if False:
+            if False: ## TODO move this debug output to better better comments
                 print "thread_id = "+ str(thread_id)
                 cursor.execute( "SELECT * FROM threads WHERE _id=?", [contact_id] )
                 print "updated thread: " + str(cursor.fetchone())
                 print "adding entry to message db: " + str([txt.num,txt.date,txt.body,thread_id,txt.incoming+1])
 
+            ## TODO try using cur.execute('BEGIN TRANSACTION') and cur.execute('COMMIT') every 1000 for speedup
             #add message to sms table
             cursor.execute( "INSERT INTO sms (address,'date',body,thread_id,read,type,seen) VALUES (?,?,?,?,1,?,1)", [txt.num,txt.date,txt.body,thread_id,txt.incoming+1])
 
@@ -104,14 +108,6 @@ class Android:
             for row in cursor.execute('SELECT * FROM threads'):
                 print row
 
-
-    def cleanNumber(self, numb):
-        if not numb:
-            return False
-        stripped = ''.join(ch for ch in numb if ch.isalnum())
-        if not stripped.isdigit():
-            return False
-        return stripped[-10:]
 
 
 INIT_DB_SQL = "\

@@ -21,11 +21,14 @@ EXTENTION_TYPE_DEFAULTS = {
 }
 
 class Text:
-    def __init__( self, num, date, incoming, body):
+    def __init__( self, num, date, incoming, body, chatroom=None):
         self.num  = num
         self.date = date
         self.incoming = incoming
         self.body = body
+        self.chatroom = chatroom
+    def chatroom(self):
+        return __dict__["chatroom"]
     def __str__(self):
         return "%s(%r)" % (self.__class__, self.__dict__)
     def __repr__(self):
@@ -68,12 +71,40 @@ def getParser(file):
     raise UnrecognizedDBError("Unknown extension %s" % extension)
 
 
+def cleanNumber(numb):
+    if not numb:
+        return False
+    if '@' in numb: return numb #allow email addresses
+    stripped = ''.join(ch for ch in numb if ch.isalnum())
+    if not stripped.isdigit():
+        return False
+    return stripped[-10:]
+
 def getTestTexts():
     ENCODING_TEST_STRING = u'Δ, Й, ק, ‎ م, ๗, あ, 叶, 葉, and 말.'
     return [ Text("8675309", 1326497882355L, True, "Yo, what's up boo?"), \
         Text("+1(555)565-6565", 1330568484000L, False, "Goodbye cruel testing."),\
         Text("+1(555)565-6565", random.getrandbits(43), False, ENCODING_TEST_STRING)]
 
+
+def compareTexts(t1, t2,
+        throw_errors=True,
+        required_attrs=['num', 'incoming', 'body', 'date']):
+    mismatched = []
+    for att in required_attrs:
+        if t1.__dict__[att] != t2.__dict__[att]:
+            if throw_errors:
+                raise Exception("Text[%s] vals <%s =! %s> in <%s> and <%s>"
+                    % (att, t1.__dict__[att], t2.__dict__[att], t1, t2))
+            mismatched.append(att)
+    warn_attrs = list((set(t1.__dict__.keys()) | set(t2.__dict__.keys())) - set(required_attrs))
+    for att in warn_attrs:
+        if (not att in t1.__dict__) or (not att in t2.__dict__):
+            mismatched.append(att)
+            # print "WARNING: Text[%s] not present in both <%s> and <%s>" % (att, t1, t2)
+        elif t1.__dict__[att] != t2.__dict__[att]:
+            mismatched.append(att)
+    return mismatched
 
 def getDbTableNames(file):
     cur = sqlite3.connect(file).cursor()
