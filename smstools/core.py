@@ -79,6 +79,14 @@ def cleanNumber(numb):
         return False
     return stripped[-10:]
 
+def getVersion():
+    try:
+        import pkg_resources
+        return pkg_resources.get_distribution("smstools").version
+    except:
+        return "unknown version"
+
+
 def getTestTexts():
     ENCODING_TEST_STRING = u'Δ, Й, ק, ‎ م, ๗, あ, 叶, 葉, and 말.'
     return [ Text("8675309", 1326497882355L, True, "Yo, what's up boo?"), \

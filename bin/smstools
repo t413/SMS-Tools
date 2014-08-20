@@ -9,7 +9,7 @@ parser = argparse.ArgumentParser(description='Import texts to android sms databa
 parser.add_argument('infiles', nargs='+', type=argparse.FileType('r'), help='input files, may include multiple sources')
 parser.add_argument('outfile', type=argparse.FileType('w'), help='output file to write to.')
 parser.add_argument('--type', type=str, help='output type', choices=smstools.OUTPUT_TYPE_CHOICES.keys())
-parser.add_argument('-V', '--version', action='version', version="%(prog)s "+smstools.__version__)
+parser.add_argument('-V', '--version', action='version', version="%(prog)s "+smstools.getVersion())
 
 try:
     import argcomplete
