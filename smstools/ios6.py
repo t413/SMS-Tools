@@ -57,7 +57,7 @@ class IOS6:
     def write_cursor(self, texts, cursor):
 
         if (cursor.execute("SELECT Count() FROM message").fetchone()[0] > 0):
-            print "WARNING: writing to cursor with existing messages"
+            raise sms_exceptions.NonEmptyStartDBError("Output DB has existing messages!")
 
         ## First populate the 'handle' table with each contact
         handles_lookup = {} # cleaned # -> handle ROWID

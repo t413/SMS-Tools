@@ -28,21 +28,14 @@ class Text:
         self.chatroom = chatroom
     def chatroom(self):
         return __dict__["chatroom"]
+    def localStringTime(self):
+        return time.strftime("%Y-%m-%d %I:%M:%S %p %Z", time.localtime(self.date/1000))
     def __str__(self):
         return "%s(%r)" % (self.__class__, self.__dict__)
     def __repr__(self):
         return self.__str__()
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
-
-def readTextsFromFile(file):
-    starttime = time.time() #meause execution time
-    parser = getParser(file)
-    if os.path.splitext(file.name)[1] == ".db":
-        file.close()
-    new_texts = parser.parse(file.name)
-    print "{0} messages read in {1} seconds from {2}".format(len(new_texts), (time.time()-starttime), file.name)
-    return new_texts
 
 
 def getParser(file):
@@ -71,13 +64,25 @@ def getParser(file):
 
 
 def cleanNumber(numb):
-    if not numb:
-        return False
+    if not numb: return False
     if '@' in numb: return numb #allow email addresses
     stripped = ''.join(ch for ch in numb if ch.isalnum())
     if not stripped.isdigit():
         return False
     return stripped[-10:]
+
+
+def getDbTableNames(file):
+    cur = sqlite3.connect(file).cursor()
+    names = [name[0] for name in cur.execute("SELECT name FROM sqlite_master WHERE type='table'; ")]
+    cur.close()
+    return names
+
+
+
+
+
+####  Tools and utilities  ####
 
 def getVersion():
     try:
@@ -86,6 +91,26 @@ def getVersion():
     except:
         return "unknown version"
 
+def truncate(text, leng=75):
+    return (text[:leng] + ' ..') if len(text) > 75 else text
+
+def getColorLibrary():
+    try:
+        import blessings
+        return blessings.Terminal() # nice terminal color library
+    except:
+        print "install 'blessings' module for great terminal output color"
+        class CatchAllPassthrough:
+            def __getattr__(self, name): return str
+        return CatchAllPassthrough()
+
+term = getColorLibrary()
+
+def warning(string):
+    print core.term.magenta_on_black("WARNING: ") + string
+
+
+####  Common Testing functions  ####
 
 def getTestTexts():
     ENCODING_TEST_STRING = u'Δ, Й, ק, ‎ م, ๗, あ, 叶, 葉, and 말.'
@@ -108,16 +133,9 @@ def compareTexts(t1, t2,
     for att in warn_attrs:
         if (not att in t1.__dict__) or (not att in t2.__dict__):
             mismatched.append(att)
-            # print "WARNING: Text[%s] not present in both <%s> and <%s>" % (att, t1, t2)
         elif t1.__dict__[att] != t2.__dict__[att]:
             mismatched.append(att)
     return mismatched
-
-def getDbTableNames(file):
-    cur = sqlite3.connect(file).cursor()
-    names = [name[0] for name in cur.execute("SELECT name FROM sqlite_master WHERE type='table'; ")]
-    cur.close()
-    return names
 
 def getDbInfo(file):
     outs = ""

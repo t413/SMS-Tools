@@ -5,6 +5,7 @@
 import argparse, os, time, sys
 import smstools
 
+term = smstools.term
 parser = argparse.ArgumentParser(description='Import texts to android sms database file.')
 parser.add_argument('infiles', nargs='+', type=argparse.FileType('r'), help='input files, may include multiple sources')
 parser.add_argument('outfile', type=argparse.FileType('w'), help='output file to write to.')
@@ -33,12 +34,23 @@ try:
     #get the texts into memory
     texts = []
     for file in args.infiles:
-        texts.extend(smstools.readTextsFromFile(file))
+        starttime = time.time() #meause execution time
+        parser = smstools.getParser(file)
+        if os.path.splitext(file.name)[1] == ".db": file.close()
+        new_texts = parser.parse(file.name)
+        print term.black_on_blue("%d messages read in %d seconds from %s using parser %s") % \
+            (len(new_texts), (time.time()-starttime), os.path.basename(file.name), parser.__class__)
 
-    print "sorting all {0} texts by date".format( len(texts) )
+        if len(new_texts):
+            print "  latest text: " + term.blue(new_texts[-1].localStringTime()) + " to " + term.blue(new_texts[-1].num) + ":"
+            print "   " + term.blue(smstools.truncate(new_texts[-1].body))
+        texts.extend(new_texts)
+
+    print term.black_on_yellow("sorting all %d texts by date") % len(texts)
     texts = sorted(texts, key=lambda text: text.date)
 
     outtype().write(texts, args.outfile)
+    print term.black_on_yellow("saved messages to %s") % os.path.basename(args.outfile.name)
 except smstools.SMSToolError as e:
     sys.exit(e) #exit with error without traceback
 except KeyboardInterrupt:

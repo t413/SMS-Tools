@@ -1,5 +1,5 @@
 import os, sys, time, sqlite3
-import core
+import core, sms_exceptions
 
 class Android:
     """ Android sqlite reader and writer """
@@ -52,6 +52,9 @@ class Android:
 
 
     def write_cursor(self, texts, cursor):
+
+        if (cursor.execute("SELECT Count() FROM sms").fetchone()[0] > 0):
+            raise sms_exceptions.NonEmptyStartDBError("Output DB has existing messages!")
 
         #populate fast lookup table:
         contactIdFromNumber = {}

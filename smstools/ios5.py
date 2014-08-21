@@ -30,7 +30,7 @@ class IOS5:
                 txt = core.Text( row[2], long(row[3]*1000), (from_me==1), row[4])
             if not txt.num:
                 txt.num = "unknown"
-                print "WARNING: extracted text without number. row: %s" % str(row)
+                core.warning("extracted text without number. row: %s" % str(row))
 
             lookup_num = str(txt.num)[-10:]
             if not lookup_num in contactLookup:

@@ -10,3 +10,6 @@ class UnrecognizedDBError(SMSToolError):
 class UnfinishedError(SMSToolError):
     '''Not yet implimented'''
     pass
+
+class NonEmptyStartDBError(SMSToolError):
+    pass
