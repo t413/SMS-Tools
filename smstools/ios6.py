@@ -108,8 +108,9 @@ class IOS6:
             guid = str(uuid.uuid1())
 
             cursor.execute( "INSERT INTO message \
-                ('text', guid, handle_id, version, type, service, 'date', is_finished, is_from_me, is_sent ) \
-                VALUES (?,?,?,?,?,?,?,?,?,?)", [txt.body, guid, handle_i, 1, txt.chatroom != None, 'SMS', idate, 1, from_me, from_me])
+                ('text', guid, handle_id, version, type, service, 'date', is_finished, is_from_me, is_sent, is_read ) \
+                VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                [txt.body, guid, handle_i, 1, txt.chatroom != None, 'SMS', idate, 1, from_me, from_me, (1 - from_me)])
             message_id = cursor.lastrowid
 
             chat_id = chat_lookup[chat_key]
