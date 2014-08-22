@@ -25,7 +25,7 @@ class GoogleVoice:
                 ttime = time.mktime(time.strptime(row[1], '%Y-%m-%d %H:%M:%S.%f'))
             except ValueError:
                 ttime = time.mktime(time.strptime(row[1], '%Y-%m-%d %H:%M:%S'))
-            txt = core.Text(num=row[4],date=long(ttime*1000),incoming=row[2]==0,body=row[3])
+            txt = core.Text(num=row[4], date=long(ttime*1000), incoming=(row[2]==1), body=row[3])
             texts.append(txt)
         return texts
 
