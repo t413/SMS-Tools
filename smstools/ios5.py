@@ -24,10 +24,10 @@ class IOS5:
             FROM message; ')
         for row in query:
             if row[0]:
-                txt = core.Text( row[1], long((row[3] + 978307200)*1000), (row[5]==0), row[4])
+                txt = core.Text( num=row[1], date=long((row[3] + 978307200)*1000), incoming=(row[5]==0), body=row[4])
             else:
                 from_me = row[6] & 0x01
-                txt = core.Text( row[2], long(row[3]*1000), (from_me==1), row[4])
+                txt = core.Text( num=row[2], date=long(row[3]*1000), incoming=(from_me==1), body=row[4])
             if not txt.num:
                 txt.num = "unknown"
                 core.warning("extracted text without number. row: %s" % str(row))

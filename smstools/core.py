@@ -20,14 +20,15 @@ EXTENTION_TYPE_DEFAULTS = {
 }
 
 class Text:
-    def __init__( self, num, date, incoming, body, chatroom=None):
-        self.num  = num
-        self.date = date
-        self.incoming = incoming
-        self.body = body
-        self.chatroom = chatroom
-    def chatroom(self):
-        return __dict__["chatroom"]
+    def __init__( self, **kwargs):
+        requiredArgs = ['num', 'date', 'incoming', 'body']
+        noneDefaultArgs = ['chatroom', 'members']
+
+        for arg in requiredArgs:
+            if not arg in kwargs: raise Exception("Required argument '%s' missing" % arg)
+        vars(self).update(kwargs)
+        for arg in noneDefaultArgs:
+            if not arg in vars(self): vars(self)[arg] = None
     def localStringTime(self):
         return time.strftime("%Y-%m-%d %I:%M:%S %p %Z", time.localtime(self.date/1000))
     def __str__(self):
@@ -116,9 +117,9 @@ def warning(string):
 
 def getTestTexts():
     ENCODING_TEST_STRING = u'Δ, Й, ק, ‎ م, ๗, あ, 叶, 葉, and 말.'
-    return [ Text("8675309", 1326497882355L, True, "Yo, what's up boo?"), \
-        Text("+1(555)565-6565", 1330568484000L, False, "Goodbye cruel testing."),\
-        Text("+1(555)565-6565", random.getrandbits(43), False, ENCODING_TEST_STRING)]
+    return [ Text(num="8675309", date=1326497882355L, incoming=True, body="Yo, what's up boo?"), \
+        Text(num="+1(555)565-6565", date=1330568484000L, incoming=False, body="Goodbye cruel testing."),\
+        Text(num="+1(555)565-6565", date=random.getrandbits(43), incoming=False, body=ENCODING_TEST_STRING)]
 
 
 def compareTexts(t1, t2,

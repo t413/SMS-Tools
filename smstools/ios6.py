@@ -11,6 +11,7 @@ class IOS6:
         cursor = db.cursor()
         texts = self.parse_cursor(cursor)
         cursor.close()
+        db.commit()
         db.close()
         return texts
 

@@ -12,8 +12,8 @@ class XMLmms:
             dom = xml.dom.minidom.parse(file)
             i = 0
             for sms in dom.getElementsByTagName("sms"):
-                txt = core.Text( sms.attributes['address'].value, sms.attributes['date'].value,
-                        (sms.attributes['type'].value==2), sms.attributes['body'].value)
+                txt = core.Text( num=sms.attributes['address'].value, date=sms.attributes['date'].value,
+                        incoming=(sms.attributes['type'].value==2), body=sms.attributes['body'].value)
                 texts.append(txt)
             return texts
 

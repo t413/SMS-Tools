@@ -22,7 +22,7 @@ class Android:
              FROM sms \
              ORDER BY _id ASC;')
         for row in query:
-            txt = core.Text(row[0],long(row[1]),(row[2]==2),row[3])
+            txt = core.Text(num=row[0],date=long(row[1]),incoming=(row[2]==2),body=row[3])
             texts.append(txt)
         return texts
 
