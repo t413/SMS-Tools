@@ -5,10 +5,10 @@ class Android:
     """ Android sqlite reader and writer """
 
 
-    def parse(self, file):
+    def parse(self, filepath):
         """ Parse a sqlite file to Text[] """
 
-        db = sqlite3.connect(file)
+        db = sqlite3.connect(filepath)
         cursor = db.cursor()
         texts = self.parse_cursor(cursor)
         cursor.close()
@@ -26,21 +26,11 @@ class Android:
             texts.append(txt)
         return texts
 
-    def write(self, texts, outfile):
+    def write(self, texts, outfilepath):
         """ write a Text[] to sqlite file """
-        if type(outfile) == file:
-            if not file.closed:
-                file.close()
-            outfile = os.path.abspath(outfile.name)
-
-        if (os.path.isfile(outfile) and (os.path.getsize(outfile) > 0)):
-            print "connecting to existing db"
-            conn = sqlite3.connect(outfile)
-        else:
-            print "Creating empty Android SQLITE db"
-            conn = sqlite3.connect(outfile)
-            conn.executescript(INIT_DB_SQL)
-
+        print "Creating empty Android SQLITE db"
+        conn = sqlite3.connect(outfile)
+        conn.executescript(INIT_DB_SQL)
         cursor = conn.cursor()
 
         self.write_cursor(texts, cursor)

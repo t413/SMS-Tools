@@ -5,9 +5,9 @@ import core, sms_exceptions
 class IOS6:
     """ iOS 6 sqlite reader and writer """
 
-    def parse(self, file):
+    def parse(self, filepath):
         """ Parse iOS 6 sqlite file to Text[] """
-        db = sqlite3.connect(file)
+        db = sqlite3.connect(filepath)
         cursor = db.cursor()
         texts = self.parse_cursor(cursor)
         cursor.close()
@@ -31,19 +31,10 @@ class IOS6:
             texts.append(text)
         return texts
 
-    def write(self, texts, outfile):
-        if type(outfile) == file:
-            if not file.closed:
-                file.close()
-            outfile = os.path.abspath(outfile.name)
-
-        if (os.path.isfile(outfile) and (os.path.getsize(outfile) > 0)):
-            print "connecting to existing db"
-            conn = sqlite3.connect(outfile)
-        else:
-            print "Creating empty Android SQLITE db"
-            conn = sqlite3.connect(outfile)
-            conn.executescript(INIT_DB_SQL)
+    def write(self, texts, outfilepath):
+        print "Creating empty iOS 6 SQLITE db"
+        conn = sqlite3.connect(outfilepath)
+        conn.executescript(INIT_DB_SQL)
 
         cursor = conn.cursor()
         self.write_cursor(texts, cursor)
@@ -64,36 +55,38 @@ class IOS6:
         chat_lookup = {} # chat_key -> chat ROWID
         chat_participants = {} # chat_key -> [cleaned1, cleaned2]
         for txt in texts:
-            clean_number = core.cleanNumber(txt.num)
-            chat_key = txt.chatroom if txt.chatroom else txt.num
+            try:
+                clean_number = core.cleanNumber(txt.num)
+                chat_key = txt.chatroom if txt.chatroom else txt.num
 
-            ## Create the handle table (effectively a contacts table)
-            if not clean_number in handles_lookup:
-                try:
+                ## Create the handle table (effectively a contacts table)
+                if (clean_number) and (not clean_number in handles_lookup):
                     cursor.execute( "INSERT INTO handle ('id', service, uncanonicalized_id ) \
                         VALUES (?,?,?)", [txt.num,"SMS",clean_number])
-                except:
-                    print "failed at: %s" % (txt)
-                    raise
-                handles_lookup[clean_number] = cursor.lastrowid
+                    handles_lookup[clean_number] = cursor.lastrowid
 
-            ## Create the chat table (effectively a threads table)
-            if not chat_key in chat_lookup:
-                guid = ("SMS;+;%s" % txt.chatroom) if txt.chatroom else ("SMS;-;%s" % txt.num)
-                style = 43 if txt.chatroom else 45
-                cursor.execute( "INSERT INTO chat (guid, style, state, chat_identifier, service_name, room_name ) \
-                    VALUES (?,?,?,?,?,?)", [guid, style, 3, chat_key, 'SMS', txt.chatroom])
-                chat_lookup[chat_key] = cursor.lastrowid
+                if not chat_key:
+                    core.warning("no txt chat_key for " + txt)
+                ## Create the chat table (effectively a threads table)
+                if not chat_key in chat_lookup:
+                    guid = ("SMS;+;%s" % txt.chatroom) if txt.chatroom else ("SMS;-;%s" % txt.num)
+                    style = 43 if txt.chatroom else 45
+                    cursor.execute( "INSERT INTO chat (guid, style, state, chat_identifier, service_name, room_name ) \
+                        VALUES (?,?,?,?,?,?)", [guid, style, 3, chat_key, 'SMS', txt.chatroom])
+                    chat_lookup[chat_key] = cursor.lastrowid
 
-            ## Create the chat_handle_join table (represents participants in all threads)
-            if not chat_key in chat_participants:
-                chat_participants[chat_key] = set()
-            if not clean_number in chat_participants[chat_key]:
-                chat_participants[chat_key].add(clean_number)
-                chat_id = chat_lookup[chat_key]
-                handle_id = handles_lookup[clean_number]
-                cursor.execute( "INSERT INTO chat_handle_join (chat_id, handle_id ) \
-                    VALUES (?,?)", [chat_id, handle_id])
+                ## Create the chat_handle_join table (represents participants in all threads)
+                if not chat_key in chat_participants:
+                    chat_participants[chat_key] = set()
+                if not clean_number in chat_participants[chat_key]:
+                    chat_participants[chat_key].add(clean_number)
+                    chat_id = chat_lookup[chat_key]
+                    handle_id = handles_lookup[clean_number]
+                    cursor.execute( "INSERT INTO chat_handle_join (chat_id, handle_id ) \
+                        VALUES (?,?)", [chat_id, handle_id])
+            except:
+                print core.term.red("something failed at: %s") % (txt)
+                raise
 
 
         print "built handles table with %i, chat with %i, chat_handle_join with %i entries" \

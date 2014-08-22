@@ -22,12 +22,6 @@ class AndroidTest(unittest.TestCase):
         for i in range(len(true_texts)):
             self.assertTextsEqual(true_texts[i], parsed_texts[i])
 
-    def test_write_parse(self):
-        t = 430282537
-
-
-        print time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(1347517119))
-
 
     def assertTextsEqual(self, t1, t2):
         warns = core.compareTexts(t1, t2,

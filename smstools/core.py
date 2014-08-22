@@ -38,16 +38,17 @@ class Text:
         return self.__dict__ == other.__dict__
 
 
-def getParser(file):
-    extension = os.path.splitext(file.name)[1]
+def getParser(filepath):
+    extension = os.path.splitext(filepath)[1]
     if extension == ".csv":
         return csv.CSV()
+    if extension == ".json":
+        return jsoner.JSONer()
     elif extension == ".db" or extension == ".sqlite":
-        file.close()
         try:
-            tableNames = core.getDbTableNames( file.name )
+            tableNames = core.getDbTableNames( filepath )
         except:
-            raise UnrecognizedDBError("Error reading from %s" % file.name)
+            raise UnrecognizedDBError("Error reading from %s" % filepath)
         if "handle" in tableNames:
             return ios6.IOS6()
         elif "group_member" in tableNames:
@@ -56,8 +57,9 @@ def getParser(file):
             return googlevoice.GoogleVoice()
         elif "sms" in tableNames:
             return android.Android()
-        info = getDbInfo( file.name )
-        raise UnrecognizedDBError("Unknown sqlite database: [%s]\n%s" % (os.path.basename(file.name), info))
+        print term.red_on_black("unrecognized database details and structure:")
+        print getDbInfo( file.name )
+        raise UnrecognizedDBError("Unknown sqlite database: [%s]" % os.path.basename(filepath))
     elif extension == ".xml":
         return xmlmms.XMLmms()
     raise UnrecognizedDBError("Unknown extension %s" % extension)

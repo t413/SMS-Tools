@@ -7,8 +7,8 @@ import smstools
 
 term = smstools.term
 parser = argparse.ArgumentParser(description='Import texts to android sms database file.')
-parser.add_argument('infiles', nargs='+', type=argparse.FileType('r'), help='input files, may include multiple sources')
-parser.add_argument('outfile', type=argparse.FileType('w'), help='output file to write to.')
+parser.add_argument('infiles', nargs='+', type=str, help='input files, may include multiple sources')
+parser.add_argument('outfile', type=str, help='output file to write to.')
 parser.add_argument('--type', type=str, help='output type', choices=smstools.OUTPUT_TYPE_CHOICES.keys())
 parser.add_argument('-V', '--version', action='version', version="%(prog)s "+smstools.getVersion())
 
@@ -21,25 +21,34 @@ except:
 args = parser.parse_args()
 
 try:
+
+    ## Check arguments ##
+
+    for filepath in args.infiles:
+        if not os.path.exists(filepath) or os.path.getsize(filepath) < 1:
+            raise ArgumentError("%s doesn't exist or has no data" % filepath)
+    if os.path.exists(args.outfile):
+        raise ArgumentError("output file [%s] can't exist" % args.outfile)
+
     outtype = args.type
     if outtype:
         outtype = smstools.OUTPUT_TYPE_CHOICES[outtype]
     else:
-        extension = os.path.splitext(args.outfile.name)[1]
+        extension = os.path.splitext(args.outfile)[1]
         if extension in smstools.EXTENTION_TYPE_DEFAULTS:
             outtype = smstools.OUTPUT_TYPE_CHOICES[smstools.EXTENTION_TYPE_DEFAULTS[extension]]
         else:
             raise smstools.SMSToolError("unknown output format (use --type argument)")
 
-    #get the texts into memory
+
+    ## get the texts into memory ##
     texts = []
-    for file in args.infiles:
+    for filename in args.infiles:
         starttime = time.time() #meause execution time
-        parser = smstools.getParser(file)
-        if os.path.splitext(file.name)[1] == ".db": file.close()
-        new_texts = parser.parse(file.name)
+        parser = smstools.getParser(filename)
+        new_texts = parser.parse(filename)
         print term.black_on_blue("%d messages read in %d seconds from %s using parser %s") % \
-            (len(new_texts), (time.time()-starttime), os.path.basename(file.name), parser.__class__)
+            (len(new_texts), (time.time()-starttime), os.path.basename(filename), parser.__class__)
 
         if len(new_texts):
             print "  latest text: " + term.blue(new_texts[-1].localStringTime()) + " to " + term.blue(new_texts[-1].num) + ":"
@@ -50,7 +59,7 @@ try:
     texts = sorted(texts, key=lambda text: text.date)
 
     outtype().write(texts, args.outfile)
-    print term.black_on_yellow("saved messages to %s") % os.path.basename(args.outfile.name)
+    print term.black_on_yellow("saved messages to %s") % os.path.basename(args.outfile)
 except smstools.SMSToolError as e:
     sys.exit(e) #exit with error without traceback
 except KeyboardInterrupt:

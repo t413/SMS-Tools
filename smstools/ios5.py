@@ -6,9 +6,9 @@ class IOS5:
     """ iOS 5 sqlite reader and writer """
 
 
-    def parse(self, file):
+    def parse(self, filepath):
         """ Parse iOS 5 sqlite file to Text[] """
-        db = sqlite3.connect(file)
+        db = sqlite3.connect(filepath)
         cursor = db.cursor()
         texts = self.parse_cursor(cursor)
         cursor.close()

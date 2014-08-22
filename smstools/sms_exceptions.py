@@ -13,3 +13,6 @@ class UnfinishedError(SMSToolError):
 
 class NonEmptyStartDBError(SMSToolError):
     pass
+
+class ArgumentError(SMSToolError):
+    pass

@@ -21,7 +21,7 @@ setup(
     license='CC BY-NC-SA 3.0 US',
     install_requires=['unicodecsv>=0.9.3'],
     extras_require = {
-        'colors':  ["blessings>=1.5.0"]
-        'autocomplete':  ["argcomplete>=0.8.0"]
+        'colors':  ["blessings>=1.5.0"],
+        'autocomplete':  ["argcomplete>=0.8.0"],
     },
 )

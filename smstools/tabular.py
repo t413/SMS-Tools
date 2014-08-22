@@ -7,8 +7,9 @@ class Tabular:
     """ Google Voice (in sqlite or format) reader and writer """
 
 
-    def parse(self, file):
+    def parse(self, filepath):
         """ Parse a GV CSV file to Text[] """
+        file = open(filepath, 'r')
         inreader = unicodecsv.reader(file, encoding='utf-8')
 
         #gather needed column indexes from the csv file
@@ -34,12 +35,15 @@ class Tabular:
                     row[bodyIndex] ) #body
             texts.append(txt)
             i += 1
+        file.close()
         return texts
 
-    def write(self, texts, outfile):
+    def write(self, texts, outfilepath):
+        outfile = open(outfilepath, 'w')
         writer = unicodecsv.writer(outfile, quoting=unicodecsv.QUOTE_NONNUMERIC, encoding='utf-8')
         writer.writerow(texts[0].__dict__.keys())
         writer.writerows( [text.__dict__.values() for text in texts] )
+        outfile.close()
 
 
 

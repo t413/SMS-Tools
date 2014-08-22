@@ -21,6 +21,7 @@ class AndroidTest(unittest.TestCase):
 
         for i in range(len(true_texts)):
             self.assertEqual(true_texts[i], parsed_texts[i])
+        cursor.close()
 
 
 if __name__ == '__main__':
