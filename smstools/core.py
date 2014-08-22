@@ -30,7 +30,7 @@ class Text:
         for arg in noneDefaultArgs:
             if not arg in vars(self): vars(self)[arg] = None
     def localStringTime(self):
-        return time.strftime("%Y-%m-%d %I:%M:%S %p %Z", time.localtime(self.date/1000))
+        return time.strftime("%Y-%m-%d %I:%M:%S %p %Z", time.localtime(long(self.date)/1000))
     def __str__(self):
         return "%s(%r)" % (self.__class__, self.__dict__)
     def __repr__(self):

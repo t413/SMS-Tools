@@ -26,9 +26,9 @@ try:
 
     for filepath in args.infiles:
         if not os.path.exists(filepath) or os.path.getsize(filepath) < 1:
-            raise ArgumentError("%s doesn't exist or has no data" % filepath)
+            raise smstools.ArgumentError("%s doesn't exist or has no data" % filepath)
     if os.path.exists(args.outfile):
-        raise ArgumentError("output file [%s] can't exist" % args.outfile)
+        raise smstools.ArgumentError("output file [%s] can't exist" % args.outfile)
 
     outtype = args.type
     if outtype:
@@ -47,6 +47,10 @@ try:
         starttime = time.time() #meause execution time
         parser = smstools.getParser(filename)
         new_texts = parser.parse(filename)
+        for txt in new_texts:
+            if (txt.num == None) or (txt.num == "") or (len(txt.num) < 1):
+                smstools.warning("REMOVING text with no number: %s (from %s)" % (txt, os.path.basename(filename)))
+                new_texts.remove(txt)
         print term.black_on_blue("%d messages read in %d seconds from %s using parser %s") % \
             (len(new_texts), (time.time()-starttime), os.path.basename(filename), parser.__class__)
 

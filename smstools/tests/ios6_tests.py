@@ -20,10 +20,42 @@ class IOS6Tests(core_tests.BaseTests):
         for i in range(len(true_texts)):
             self.assertTextsEqual(true_texts[i], parsed_texts[i])
 
+
+
+
     def test_something(self):
         files = self.get_test_db_files(for_parser=ios6.IOS6)
         for file in files:
-            print file
+            print "processing file %s" % file
+            oridb = sqlite3.connect(file)
+            oricur = oridb.cursor()
+            texts = ios6.IOS6().parse_cursor(oricur)
+
+            # self.assertEqual( len(texts),
+            #     oricur.execute("SELECT Count() FROM message").fetchone()[0])
+
+            memorydb = self.get_empty_db_in_memory(ios6)
+            memorycur = memorydb.cursor()
+            ios6.IOS6().write_cursor(texts, memorycur)
+            memorydb.commit()
+
+            print "comparing group chats in each database"
+            self.assertEqual(
+                set(getSqliteColumn(oricur,'room_name','chat')),
+                set(getSqliteColumn(memorycur,'room_name','chat')))
+
+            print "comparing handle ids in each database"
+            self.assertEqual(
+                set(getSqliteColumn(oricur,'id','handle')),
+                set(getSqliteColumn(memorycur,'id','handle')))
+
+            # self.assertEqual( len(texts),
+            #     memorycur.execute("SELECT Count() FROM message").fetchone()[0])
+
+
+def getSqliteColumn(cursor, column, table):
+    res = cursor.execute("SELECT %s FROM %s " % (column, table)).fetchall()
+    return [r[0] for r in res]
 
 
 if __name__ == '__main__':

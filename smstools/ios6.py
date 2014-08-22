@@ -17,18 +17,39 @@ class IOS6:
 
     def parse_cursor(self, cursor):
 
+        handles = {}
+        query = cursor.execute(
+            'SELECT ROWID, id, country FROM handle')
+        for row in query:
+            handles[row[0]] = (row[1], row[2], core.cleanNumber(row[1]))
+
+        chats = {} # room_name -> [members]
+        #query = cursor.execute('SELECT room_name, ROWID FROM chat WHERE room_name <> "" ')
+        query = cursor.execute(
+            'SELECT chat.room_name, handle.id FROM chat \
+             LEFT OUTER JOIN chat_handle_join ON chat_handle_join.chat_id = chat.ROWID \
+             JOIN handle ON chat_handle_join.handle_id = handle.ROWID \
+             WHERE chat.room_name <> "" ')
+        for row in query:
+            if (not row[0] in chats): chats[row[0]] = []
+            chats[row[0]].append(row[1])
+
         texts = []
         query = cursor.execute(
-            'SELECT handle.id, message.date, message.is_from_me, message.text, chat.room_name \
+            'SELECT message.handle_id, message.date, message.is_from_me, message.text, chat.room_name \
              FROM message \
              LEFT OUTER JOIN chat_message_join ON message.ROWID = chat_message_join.message_id \
              LEFT OUTER JOIN chat ON chat_message_join.chat_id = chat.ROWID \
-             LEFT OUTER JOIN chat_handle_join ON chat.ROWID = chat_handle_join.chat_id \
-             LEFT OUTER JOIN handle ON chat_handle_join.handle_id = handle.ROWID \
              ORDER BY message.ROWID ASC;')
         for row in query:
-            text = core.Text(num = row[0], date = long((row[1] + 978307200)*1000),
-                incoming = row[2] == 0, body = row[3], chatroom = row[4])
+            number = handles[row[0]][0] if row[0] in handles else "unknown"
+            text = core.Text(
+                num = number,
+                date = long((row[1] + 978307200)*1000),
+                incoming = row[2] == 0,
+                body = row[3],
+                chatroom = row[4],
+                members=(chats[row[4]] if row[4] else None))
             texts.append(text)
         return texts
 
@@ -43,7 +64,7 @@ class IOS6:
         conn.commit()
         cursor.close()
         conn.close()
-        print "changes saved to", outfile
+        print "changes saved to", outfilepath
 
 
     def write_cursor(self, texts, cursor):
@@ -67,7 +88,7 @@ class IOS6:
                     handles_lookup[clean_number] = cursor.lastrowid
 
                 if not chat_key:
-                    core.warning("no txt chat_key for " + txt)
+                    core.warning("no txt chat_key [%s] for %s" % (chat_key, txt))
                 ## Create the chat table (effectively a threads table)
                 if not chat_key in chat_lookup:
                     guid = ("SMS;+;%s" % txt.chatroom) if txt.chatroom else ("SMS;-;%s" % txt.num)
@@ -82,13 +103,14 @@ class IOS6:
                 if not clean_number in chat_participants[chat_key]:
                     chat_participants[chat_key].add(clean_number)
                     chat_id = chat_lookup[chat_key]
-                    handle_id = handles_lookup[clean_number]
-                    cursor.execute( "INSERT INTO chat_handle_join (chat_id, handle_id ) \
-                        VALUES (?,?)", [chat_id, handle_id])
+                    try:
+                        handle_id = handles_lookup[clean_number]
+                        cursor.execute( "INSERT INTO chat_handle_join (chat_id, handle_id ) \
+                            VALUES (?,?)", [chat_id, handle_id])
+                    except: pass #don't add handle joins for unknown contacts.
             except:
                 print core.term.red("something failed at: %s") % (txt)
                 raise
-
 
         print "built handles table with %i, chat with %i, chat_handle_join with %i entries" \
             % (len(handles_lookup), len(chat_lookup), len(chat_participants))
@@ -96,7 +118,7 @@ class IOS6:
 
         for txt in texts:
             chat_key = txt.chatroom if txt.chatroom else txt.num
-            handle_i = handles_lookup[core.cleanNumber(txt.num)]
+            handle_i = handles_lookup[core.cleanNumber(txt.num)] if core.cleanNumber(txt.num) in handles_lookup else 0
             idate = long( (float(txt.date)/1000) - 978307200)
             from_me = 0 if txt.incoming else 1
             guid = str(uuid.uuid1())
@@ -112,8 +134,6 @@ class IOS6:
                 VALUES (?,?)", [chat_id, message_id])
 
         print "built messages table with %i entries" % len(texts)
-
-        ## TODO build build handle lookup table
 
 
 INIT_DB_SQL = "\
