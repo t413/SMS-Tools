@@ -6,11 +6,8 @@ class JSONer:
     """ Json reader and writer """
 
     def parse(self, filepath):
-        file = open(filepath, 'r')
-        try:
+        with open(filepath, 'r') as file:
             return self.fromJson(file.read())
-        finally:
-            file.close()
 
     def fromJson(self, string):
         def asTexts(dct):
@@ -23,9 +20,6 @@ class JSONer:
         return json.dumps(texts, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
     def write(self, texts, outfilepath):
-        outfile = open(outfilepath, 'w')
-        try:
+        with open(outfilepath, 'w') as outfile:
             outfile.write(self.toJson(texts))
-        finally:
-            outfile.close()
 

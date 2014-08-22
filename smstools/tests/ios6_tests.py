@@ -2,14 +2,12 @@
 import unittest, sys, os, sqlite3, time
 ##include smstools/ directory
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
-import core, ios6
+import core, ios6, core_tests
 
-class AndroidTest(unittest.TestCase):
+class IOS6Tests(core_tests.BaseTests):
 
     def setUp(self):
-
-        self.db = sqlite3.connect(':memory:')
-        self.db.executescript(ios6.INIT_DB_SQL)
+        self.db = self.get_empty_db_in_memory(ios6)
 
 
     def test_write_parse(self):
@@ -22,14 +20,10 @@ class AndroidTest(unittest.TestCase):
         for i in range(len(true_texts)):
             self.assertTextsEqual(true_texts[i], parsed_texts[i])
 
-
-    def assertTextsEqual(self, t1, t2):
-        warns = core.compareTexts(t1, t2,
-                throw_errors=True,
-                required_attrs=['num', 'incoming', 'body'])
-        self.assertEqual(long(t1.date/1000), long(t2.date/1000))
-        if 'date' in warns: warns.remove('date')
-        if warns: core.warning("text differ with %s" % (warns))
+    def test_something(self):
+        files = self.get_test_db_files(for_parser=ios6.IOS6)
+        for file in files:
+            print file
 
 
 if __name__ == '__main__':

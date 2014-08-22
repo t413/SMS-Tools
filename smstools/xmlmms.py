@@ -8,13 +8,14 @@ class XMLmms:
     def parse(self, filepath):
         """ Parse XML file to Text[] """
         texts = []
-        dom = xml.dom.minidom.parse(open(filepath,'r'))
-        i = 0
-        for sms in dom.getElementsByTagName("sms"):
-            txt = core.Text( sms.attributes['address'].value, sms.attributes['date'].value,
-                    (sms.attributes['type'].value==2), sms.attributes['body'].value)
-            texts.append(txt)
-        return texts
+        with open(filepath, 'r') as file:
+            dom = xml.dom.minidom.parse(file)
+            i = 0
+            for sms in dom.getElementsByTagName("sms"):
+                txt = core.Text( sms.attributes['address'].value, sms.attributes['date'].value,
+                        (sms.attributes['type'].value==2), sms.attributes['body'].value)
+                texts.append(txt)
+            return texts
 
     def write(self, texts, outfilepath):
         """ write a Text[] to XML file """
@@ -39,6 +40,5 @@ class XMLmms:
             # print doc.toprettyxml(indent="  ", encoding="UTF-8")
         print "generating xml output"
         xmlout = doc.toprettyxml(indent="  ", encoding="UTF-8")
-        outfile = open(outfilepath,'w')
-        outfile.write(xmlout)
-        outfile.close()
+        with open(outfilepath, 'w') as outfile:
+            outfile.write(xmlout)

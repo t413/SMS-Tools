@@ -6,10 +6,12 @@ import core
 class Tabular:
     """ Google Voice (in sqlite or format) reader and writer """
 
-
     def parse(self, filepath):
         """ Parse a GV CSV file to Text[] """
-        file = open(filepath, 'r')
+        with open(filepath, 'r') as file:
+            return self.parse_file(file)
+
+    def parse_file(self, file):
         inreader = unicodecsv.reader(file, encoding='utf-8')
 
         #gather needed column indexes from the csv file
@@ -39,11 +41,10 @@ class Tabular:
         return texts
 
     def write(self, texts, outfilepath):
-        outfile = open(outfilepath, 'w')
-        writer = unicodecsv.writer(outfile, quoting=unicodecsv.QUOTE_NONNUMERIC, encoding='utf-8')
-        writer.writerow(texts[0].__dict__.keys())
-        writer.writerows( [text.__dict__.values() for text in texts] )
-        outfile.close()
+        with open(outfilepath, 'w') as outfile:
+            writer = unicodecsv.writer(outfile, quoting=unicodecsv.QUOTE_NONNUMERIC, encoding='utf-8')
+            writer.writerow(texts[0].__dict__.keys())
+            writer.writerows( [text.__dict__.values() for text in texts] )
 
 
 
