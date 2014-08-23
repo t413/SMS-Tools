@@ -2,14 +2,12 @@
 import unittest, sys, os, sqlite3
 ##include smstools/ directory
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
-import core, android
+import core, android, core_tests
 
-class AndroidTest(unittest.TestCase):
+class AndroidTest(core_tests.BaseTests):
 
     def setUp(self):
-
-        self.db = sqlite3.connect(':memory:')
-        self.db.executescript(android.INIT_DB_SQL)
+        self.db = self.get_empty_db_in_memory(android)
 
 
     def test_write_parse(self):
@@ -21,6 +19,7 @@ class AndroidTest(unittest.TestCase):
 
         for i in range(len(true_texts)):
             self.assertEqual(true_texts[i], parsed_texts[i])
+        cursor.close()
 
 
 if __name__ == '__main__':

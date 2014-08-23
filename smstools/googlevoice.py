@@ -4,14 +4,14 @@ import core
 class GoogleVoice:
     """ Google Voice (in sqlite or format) reader and writer """
 
-    def parse(self, file):
-        return self.parseSQL(file)
+    def parse(self, filepath):
+        return self.parseSQL(filepath)
         #TODO add direct files parsing?
 
-    def parseSQL(self, file):
+    def parseSQL(self, filepath):
         """ Parse a GV sqlite file to Text[] """
 
-        conn = sqlite3.connect(file)
+        conn = sqlite3.connect(filepath)
         c = conn.cursor()
         texts = []
         query = c.execute(
@@ -25,10 +25,10 @@ class GoogleVoice:
                 ttime = time.mktime(time.strptime(row[1], '%Y-%m-%d %H:%M:%S.%f'))
             except ValueError:
                 ttime = time.mktime(time.strptime(row[1], '%Y-%m-%d %H:%M:%S'))
-            txt = core.Text(row[4],long(ttime*1000),row[2]==0,row[3])
+            txt = core.Text(num=row[4], date=long(ttime*1000), incoming=(row[2]==1), body=row[3])
             texts.append(txt)
         return texts
 
-    def write(self, texts, outfile):
+    def write(self, texts, outfilepath):
         raise Exception("Can't output to Google Voice, sorry.")
 

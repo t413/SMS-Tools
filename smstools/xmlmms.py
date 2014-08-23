@@ -5,18 +5,19 @@ class XMLmms:
     """ Android XML reader and writer """
 
 
-    def parse(self, file):
+    def parse(self, filepath):
         """ Parse XML file to Text[] """
         texts = []
-        dom = xml.dom.minidom.parse(file)
-        i = 0
-        for sms in dom.getElementsByTagName("sms"):
-            txt = core.Text( sms.attributes['address'].value, sms.attributes['date'].value,
-                    (sms.attributes['type'].value==2), sms.attributes['body'].value)
-            texts.append(txt)
-        return texts
+        with open(filepath, 'r') as file:
+            dom = xml.dom.minidom.parse(file)
+            i = 0
+            for sms in dom.getElementsByTagName("sms"):
+                txt = core.Text( num=sms.attributes['address'].value, date=sms.attributes['date'].value,
+                        incoming=(sms.attributes['type'].value==2), body=sms.attributes['body'].value)
+                texts.append(txt)
+            return texts
 
-    def write(self, texts, outfile):
+    def write(self, texts, outfilepath):
         """ write a Text[] to XML file """
         doc = xml.dom.minidom.Document()
         doc.encoding = "UTF-8"
@@ -39,4 +40,5 @@ class XMLmms:
             # print doc.toprettyxml(indent="  ", encoding="UTF-8")
         print "generating xml output"
         xmlout = doc.toprettyxml(indent="  ", encoding="UTF-8")
-        outfile.write(xmlout)
+        with open(outfilepath, 'w') as outfile:
+            outfile.write(xmlout)
