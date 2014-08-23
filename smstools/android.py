@@ -29,16 +29,16 @@ class Android:
     def write(self, texts, outfilepath):
         """ write a Text[] to sqlite file """
         print "Creating empty Android SQLITE db"
-        conn = sqlite3.connect(outfile)
+        conn = sqlite3.connect(outfilepath)
         conn.executescript(INIT_DB_SQL)
         cursor = conn.cursor()
 
         self.write_cursor(texts, cursor)
 
-        conn.commit()
         cursor.close()
+        conn.commit()
         conn.close()
-        print "changes saved to", outfile
+        print "changes saved to %s" % os.path.basename(outfilepath)
 
 
     def write_cursor(self, texts, cursor):
