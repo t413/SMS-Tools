@@ -19,8 +19,8 @@ title:       "SMS-Tools"
 keywords:    "SMS-Tools, sms, mms, iphone, android, messages, iMessage, text"
 description: "Multipurpose import / export / merge tool for your text message history."
 source_link: "https://github.com/t413/SMS-Tools"
-favicon:
-touch_icon:
+favicon:     "img/favicon.ico"
+touch_icon:  "img/apple-touch-icon.png"
 google_analytics_key: UA-49607422-1
 
 
