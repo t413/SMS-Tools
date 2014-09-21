@@ -15,13 +15,13 @@ highlighter: pygments
 
 
 ### content configuration ###
-title:
-keywords:
-description:
-source_link:
+title:       "SMS-Tools"
+keywords:    "SMS-Tools, sms, mms, iphone, android, messages, iMessage, text"
+description: "Multipurpose import / export / merge tool for your text message history."
+source_link: "https://github.com/t413/SMS-Tools"
 favicon:
 touch_icon:
-google_analytics_key:
+google_analytics_key: UA-49607422-1
 
 
 ### template colors, used site-wide via css ###
