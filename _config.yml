@@ -32,15 +32,18 @@ colors:
   white:
     light: '#f5f5f5'
     dark: '#f8f8f8'
+  red:
+    light: '#DA4C47'
+    dark: '#CC4A45'
   blue:
-    light: '#3c9eec'
-    dark: '#49a7e9'
+    light: '#689DD6'
+    dark: '#4895E8'
+  purple:
+    light: '#C67ADD'
+    dark: '#B167C7'
   green:
     light: '#a3d832'
     dark: '#9bcf2f'
-  purple:
-    light: '#c869bf'
-    dark: '#c869bf'
   orange:
     light: '#faaf22'
     dark: '#fab125'
