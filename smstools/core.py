@@ -42,7 +42,7 @@ class Text:
 def getParser(filepath):
     extension = os.path.splitext(filepath)[1]
     if extension == ".csv":
-        return csv.CSV()
+        return tabular.Tabular()
     if extension == ".json":
         return jsoner.JSONer()
     elif extension == ".db" or extension == ".sqlite":
