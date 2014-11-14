@@ -54,9 +54,11 @@ try:
         print term.black_on_blue("%d messages read in %d seconds from %s using parser %s") % \
             (len(new_texts), (time.time()-starttime), os.path.basename(filename), parser.__class__)
 
-        if len(new_texts):
+        try: #might be an exception for terminals that don't support utf8
             print "  latest text: " + term.blue(new_texts[-1].localStringTime()) + " to " + term.blue(new_texts[-1].num) + ":"
             print "   " + term.blue(smstools.truncate(new_texts[-1].body))
+        except:
+            pass
         texts.extend(new_texts)
 
     print term.black_on_yellow("sorting all %d texts by date") % len(texts)
