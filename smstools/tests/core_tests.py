@@ -14,6 +14,7 @@ class BaseTests(unittest.TestCase):
                 required_attrs=['num', 'incoming', 'body'])
         self.assertEqual(long(t1.date/1000), long(t2.date/1000))
         if 'date' in warns: warns.remove('date')
+        if 'date_sent' in warns: warns.remove('date_sent')
         if warns: core.warning("text differ with %s" % (warns))
 
     def get_test_db_files(self, directory=REAL_TEST_FILES_DIR, for_parser=None):

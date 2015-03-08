@@ -21,7 +21,7 @@ EXTENTION_TYPE_DEFAULTS = {
 
 class Text:
     def __init__( self, **kwargs):
-        requiredArgs = ['num', 'date', 'incoming', 'body']
+        requiredArgs = ['num', 'date', 'date_sent', 'incoming', 'body']
         noneDefaultArgs = ['chatroom', 'members']
 
         for arg in requiredArgs:
@@ -42,7 +42,7 @@ class Text:
 def getParser(filepath):
     extension = os.path.splitext(filepath)[1]
     if extension == ".csv":
-        return tabular.Tabular()
+        return csv.CSV()
     if extension == ".json":
         return jsoner.JSONer()
     elif extension == ".db" or extension == ".sqlite":
@@ -67,6 +67,7 @@ def getParser(filepath):
 
 
 def cleanNumber(numb):
+    """Return phone number or mail address."""
     if not numb: return False
     if '@' in numb: return numb #allow email addresses
     stripped = ''.join(ch for ch in numb if ch.isalnum())
@@ -117,14 +118,15 @@ def warning(string):
 
 def getTestTexts():
     ENCODING_TEST_STRING = u'Δ, Й, ק, ‎ م, ๗, あ, 叶, 葉, and 말.'
-    return [ Text(num="8675309", date=1326497882355L, incoming=True, body="Yo, what's up boo?"), \
-        Text(num="+1(555)565-6565", date=1330568484000L, incoming=False, body="Goodbye cruel testing."),\
-        Text(num="+1(555)565-6565", date=random.getrandbits(43), incoming=False, body=ENCODING_TEST_STRING)]
+    date_sent3 = random.getrandbits(43)
+    return [ Text(num="8675309", date=1326497882355L, date_sent=1326497882355L, incoming=True, body="Yo, what's up boo?"), \
+        Text(num="+1(555)565-6565", date=1330568484000L, date_sent=1330568484000L, incoming=False, body="Goodbye cruel testing."),\
+        Text(num="+1(555)565-6565", date=date_sent3, date_sent=date_sent3, incoming=False, body=ENCODING_TEST_STRING)]
 
 
 def compareTexts(t1, t2,
         throw_errors=True,
-        required_attrs=['num', 'incoming', 'body', 'date']):
+        required_attrs=['num', 'incoming', 'body', 'date', 'date_sent']):
     mismatched = []
     for att in required_attrs:
         if t1.__dict__[att] != t2.__dict__[att]:

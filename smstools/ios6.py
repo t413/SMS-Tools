@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import sqlite3, uuid, os
 import core, sms_exceptions
 
@@ -6,7 +8,7 @@ class IOS6:
     """ iOS 6 sqlite reader and writer """
 
     def parse(self, filepath):
-        """ Parse iOS 6 sqlite file to Text[] """
+        """ Open iOS 6 sqlite file and parse it to Text[]."""
         db = sqlite3.connect(filepath)
         cursor = db.cursor()
         texts = self.parse_cursor(cursor)
@@ -16,7 +18,7 @@ class IOS6:
         return texts
 
     def parse_cursor(self, cursor):
-
+	"""Parse iOS6 sqlite content to Text[]."""
         handles = {}
         query = cursor.execute(
             'SELECT ROWID, id, country FROM handle')
@@ -46,8 +48,9 @@ class IOS6:
             text = core.Text(
                 num = number,
                 date = long((row[1] + 978307200)*1000),
+		date_sent = long((row[1] + 978307200)*1000),
                 incoming = row[2] == 0,
-                body = row[3],
+                body = row[3], #.encode('utf8')
                 chatroom = row[4],
                 members=(chats[row[4]] if row[4] else None))
             texts.append(text)
@@ -135,7 +138,7 @@ class IOS6:
 
         print "built messages table with %i entries" % len(texts)
 
-
+# ajout CREATE TABLE sqlite_sequence (name, seq)
 INIT_DB_SQL = "\
     BEGIN TRANSACTION;\
     CREATE TABLE attachment (ROWID INTEGER PRIMARY KEY AUTOINCREMENT, guid TEXT UNIQUE NOT NULL, created_date INTEGER DEFAULT 0, start_date INTEGER DEFAULT 0, filename TEXT, uti TEXT, mime_type TEXT, transfer_state INTEGER DEFAULT 0, is_outgoing INTEGER DEFAULT 0);\
