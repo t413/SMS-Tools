@@ -8,6 +8,7 @@ Now on [PyPi](https://pypi.python.org/pypi/SMSTools) (the python package index) 
 
 Convert your message history between:
 - iOS 5, 6, and 7 databases directly (from backup or from your jailbroken phone directly)
+- Android 5.1+ bugle_db database (only from this format, do not create, use SMS Backup & Restore instead)
 - Android mmssms.db database (directly from phone)
 - Android XML from the [SMS Backup & Restore](http://android.riteshsahu.com/apps/sms-backup-restore) app
 - CSV files
@@ -34,6 +35,7 @@ usage: smstools [-h] [--type {xml,json,android,csv,ios5,ios7,ios6}]
                     infiles [infiles ...] outfile
 ```
 
+But pay attention - bugle_db support is still in forked version/pull request, so you may need to take this version manually
 
 ##Where do I get my files from?
 
@@ -42,6 +44,7 @@ usage: smstools [-h] [--type {xml,json,android,csv,ios5,ios7,ios6}]
  * If you're jailbroken: pull down `/private/var/mobile/Library/SMS/sms.db`
 - Android:
  * mmssms.db pulled from your phone: See below!
+ * bugle_db pulled from your phone: See below!
  * [SMS Backup & Restore](http://android.riteshsahu.com/apps/sms-backup-restore) to get an XML file of your messages.
 - Google Voice: **Work in progress**
 
@@ -63,8 +66,12 @@ So why use this option?
 - It's orders of magnitude faster. Perfect for load testing mms applications with different databases (why I created this)
 - Much better database performance. After importing the output.xml file with SMSBackupRestore.apk my Messaging.apk was left completely unusable. SMSBackupRestore is great, but it doesn't handle tens of thousands of messages.
 
+####What is the Android bugle_db file?
+On newer version of Android format of message storage changed, but it's still sqlite database - but with different storage location and structure. To read or write it you'll need root. It's located at `/data/data/com.android.messsaging/databases/bugle_db`
+It may be possible to read it directly using ADB by running the adb pull command as `com.android.messsaging`.
+
+Please note that this format is read-only by now, meaning that you can read these files, but you cannot convert any other formats to bugle_db. Use [SMS Backup & Restore](http://android.riteshsahu.com/apps/sms-backup-restore) instead.
+
 
 ##My results
 When I run this tool on my Google Voice data it processes **6675** messages into **149 conversations** in **15 seconds**, which is 435 average entries/second. Not bad!
-
-

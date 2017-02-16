@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import sqlite3, random, os, sys, time
-import core, android, xmlmms, tabular, ios5, ios6, jsoner, googlevoice
+import core, bugle, android, xmlmms, tabular, ios5, ios6, jsoner, googlevoice
 from sms_exceptions import *
 
 OUTPUT_TYPE_CHOICES = {
@@ -13,6 +13,7 @@ OUTPUT_TYPE_CHOICES = {
 }
 
 EXTENTION_TYPE_DEFAULTS = {
+    '': 'bugle',
     '.db': 'android',
     '.json': 'json',
     '.xml': 'xml',
@@ -61,6 +62,8 @@ def getParser(filepath):
         print term.red_on_black("unrecognized database details and structure:")
         print getDbInfo( file.name )
         raise UnrecognizedDBError("Unknown sqlite database: [%s]" % os.path.basename(filepath))
+    elif extension == "":
+        return bugle.Bugle()
     elif extension == ".xml":
         return xmlmms.XMLmms()
     raise UnrecognizedDBError("Unknown extension %s" % extension)
@@ -156,4 +159,3 @@ def getDbInfo(file):
         outs += " - %s (%i items): (%s)\n" % (table[0], table[1], colnames)
     cur.close()
     return outs
-

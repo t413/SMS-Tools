@@ -21,4 +21,3 @@ Howto:
 
     usage: smstools[-h] [--type {xml,json,android,csv,ios5,ios7,ios6}]
                         infiles [infiles ...] outfile
-
