@@ -33,9 +33,9 @@ class BaseTests(unittest.TestCase):
         for filename in files:
             parser = core.getParser(filename)
             new_texts = parser.parse(filename)
-            print "(%d) from <%s> %s" % (len(new_texts), parser.__class__, os.path.basename(filename))
+            print("(%d) from <%s> %s" % (len(new_texts), parser.__class__, os.path.basename(filename)))
             texts.extend(new_texts)
-        print "sorting all %d texts by date" % len(texts)
+        print("sorting all %d texts by date" % len(texts))
         return sorted(texts, key=lambda text: text.date)
 
     def get_empty_db_in_memory(self, module_parser):
@@ -55,7 +55,7 @@ class CoreTests(BaseTests):
         if os.path.exists(REAL_TEST_FILES_DIR):
             self.get_texts_from_dir(REAL_TEST_FILES_DIR)
         else:
-            print "test_parse_all_real_files() can't run, REAL_TEST_FILES_DIR does not exist."
+            print("test_parse_all_real_files() can't run, REAL_TEST_FILES_DIR does not exist.")
 
     def test_read_all_ios6(self):
         if not os.path.exists(REAL_TEST_FILES_DIR): return

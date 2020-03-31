@@ -378,11 +378,11 @@ def getobjs(path, encoding, force):
                 with codecs.open(os.path.join(path, fl), 'r', encoding, errors=errorHandle) as f: #read the file
                     tree = xml.etree.ElementTree.fromstring(f.read().replace('<br>', "\r\n<br />").encode("utf-8")) #read properly-formatted html
             except xml.etree.ElementTree.ParseError:
-                print "\nproblem parsing " + str(fl)
+                print("\nproblem parsing " + str(fl))
                 if not force: quit()
             except ValueError:
-                print "\nproblem reading file {0} with encoding {1}".format(fl, encoding)
-                print "Try using a different encoding or use --force"
+                print("\nproblem reading file {0} with encoding {1}".format(fl, encoding))
+                print("Try using a different encoding or use --force")
                 if not force: quit()
             record = None #reset the variable
             record = process_file(tree, fl) #do the loading
@@ -460,5 +460,5 @@ if __name__ == '__main__':
         if not os.path.exists( path ):
             os.mkdir( path )
         gvconn.exportcsv( path )
-        print 'CSVs created.'
+        print('CSVs created.')
 

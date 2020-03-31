@@ -38,7 +38,7 @@ class XMLmms:
             sms.setAttribute("locked", "0")
             smses.appendChild(sms)
             # print doc.toprettyxml(indent="  ", encoding="UTF-8")
-        print "generating xml output"
+        print("generating xml output")
         xmlout = doc.toprettyxml(indent="  ", encoding="UTF-8")
         with open(outfilepath, 'w') as outfile:
             outfile.write(xmlout)

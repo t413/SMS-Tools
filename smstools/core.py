@@ -58,8 +58,8 @@ def getParser(filepath):
             return googlevoice.GoogleVoice()
         elif "sms" in tableNames:
             return android.Android()
-        print term.red_on_black("unrecognized database details and structure:")
-        print getDbInfo( file.name )
+        print(term.red_on_black("unrecognized database details and structure:"))
+        print(getDbInfo( file.name ))
         raise UnrecognizedDBError("Unknown sqlite database: [%s]" % os.path.basename(filepath))
     elif extension == ".xml":
         return xmlmms.XMLmms()
@@ -102,7 +102,7 @@ def getColorLibrary():
         import blessings
         return blessings.Terminal() # nice terminal color library
     except:
-        print "install 'blessings' module for great terminal output color"
+        print("install 'blessings' module for great terminal output color")
         class CatchAllPassthrough:
             def __getattr__(self, name): return str
         return CatchAllPassthrough()
@@ -110,15 +110,15 @@ def getColorLibrary():
 term = getColorLibrary()
 
 def warning(string):
-    print core.term.magenta_on_black("WARNING: ") + string
+    print(core.term.magenta_on_black("WARNING: ") + string)
 
 
 ####  Common Testing functions  ####
 
 def getTestTexts():
     ENCODING_TEST_STRING = u'Δ, Й, ק, ‎ م, ๗, あ, 叶, 葉, and 말.'
-    return [ Text(num="8675309", date=1326497882355L, incoming=True, body="Yo, what's up boo?"), \
-        Text(num="+1(555)565-6565", date=1330568484000L, incoming=False, body="Goodbye cruel testing."),\
+    return [ Text(num="8675309", date=1326497882355, incoming=True, body="Yo, what's up boo?"), \
+        Text(num="+1(555)565-6565", date=1330568484000, incoming=False, body="Goodbye cruel testing."),\
         Text(num="+1(555)565-6565", date=random.getrandbits(43), incoming=False, body=ENCODING_TEST_STRING)]
 
 

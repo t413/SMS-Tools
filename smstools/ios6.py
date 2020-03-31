@@ -54,7 +54,7 @@ class IOS6:
         return texts
 
     def write(self, texts, outfilepath):
-        print "Creating empty iOS 6 SQLITE db"
+        print("Creating empty iOS 6 SQLITE db")
         conn = sqlite3.connect(outfilepath)
         conn.executescript(INIT_DB_SQL)
 
@@ -64,7 +64,7 @@ class IOS6:
         conn.commit()
         cursor.close()
         conn.close()
-        print "changes saved to", outfilepath
+        print("changes saved to", outfilepath)
 
 
     def write_cursor(self, texts, cursor):
@@ -109,11 +109,11 @@ class IOS6:
                             VALUES (?,?)", [chat_id, handle_id])
                     except: pass #don't add handle joins for unknown contacts.
             except:
-                print core.term.red("something failed at: %s") % (txt)
+                print(core.term.red("something failed at: %s") % (txt))
                 raise
 
-        print "built handles table with %i, chat with %i, chat_handle_join with %i entries" \
-            % (len(handles_lookup), len(chat_lookup), len(chat_participants))
+        print("built handles table with %i, chat with %i, chat_handle_join with %i entries" \
+            % (len(handles_lookup), len(chat_lookup), len(chat_participants)))
 
 
         for txt in texts:
@@ -133,7 +133,7 @@ class IOS6:
             cursor.execute( "INSERT INTO chat_message_join (chat_id, message_id) \
                 VALUES (?,?)", [chat_id, message_id])
 
-        print "built messages table with %i entries" % len(texts)
+        print("built messages table with %i entries" % len(texts))
 
 
 INIT_DB_SQL = "\

@@ -24,7 +24,7 @@ class Tabular:
 
         #check to be sure they all exist
         if (-1) in [phNumberIndex, dateIndex, typeIndex, bodyIndex, cidIndex]:
-            print "CSV file missing needed columns. has: "+ str(firstrow)
+            print("CSV file missing needed columns. has: "+ str(firstrow))
             quit()
 
         texts = []
@@ -53,12 +53,12 @@ class Tabular:
 if __name__ == '__main__':
     import os, random, StringIO
     ENCODING_TEST_STRING = u'Δ, Й, ק, ‎ م, ๗, あ, 叶, 葉, and 말.'
-    true_texts = [ core.Text("8675309", 1326497882355L, True, 'Yo, what\'s up boo? you so "cray"'), \
-        core.Text("+1(555)565-6565", 1330568484000L, False, "Goodbye cruel testing."),\
+    true_texts = [ core.Text("8675309", 1326497882355, True, 'Yo, what\'s up boo? you so "cray"'), \
+        core.Text("+1(555)565-6565", 1330568484000, False, "Goodbye cruel testing."),\
         core.Text("+1(555)565-6565", random.getrandbits(43), False, ENCODING_TEST_STRING)]
     # file = open(os.path.join(os.path.dirname(__file__),'test.csv'), 'w')
     file = StringIO.StringIO()
     Tabular().write(true_texts, file)
     file.seek(0)
-    print file.read().decode('utf-8')
+    print(file.read().decode('utf-8'))
 
