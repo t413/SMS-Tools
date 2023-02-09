@@ -21,7 +21,7 @@ class Bugle:
             'select\
             ppl.normalized_destination as num,\
             p.timestamp as date,\
-            case when m.sender_id in (select _id from participants where contact_id=-1) then 2 else 1 end incoming,\
+            case when m.sender_id in (select _id from participants where sub_id=-2) then 1 else 2 end incoming,\
             p.text as body\
             from messages m, conversations c, parts p, participants ppl, conversation_participants cp\
             where (m.conversation_id = c._id) and (m._id = p.message_id) and (cp.conversation_id = c._id) and (cp.participant_id = ppl._id);\
